@@ -306,9 +306,9 @@ class DiskGuard:
             if free - self._inflight - nbytes < self.min_free:
                 self.stopped = True
                 self.stop_reason = (
-                    f"Остановка: после этого файла свободно осталось бы меньше "
-                    f"{human(self.min_free)}. Сейчас свободно {human(free)}, "
-                    f"файл {human(nbytes)}. Ничего не удалял."
+                    f"Stopping: after this file less than "
+                    f"{human(self.min_free)} would be left free. Free now: {human(free)}, "
+                    f"file size {human(nbytes)}. Nothing was deleted."
                 )
                 return False
             self._inflight += max(nbytes, 0)
@@ -418,7 +418,7 @@ def process_investigation(source: dict, out_root: Path, guard: DiskGuard, manife
     }
     if files_disabled:
         summary["files_disabled"] = True
-        log("  файлы этой версии отключены в PSI, сохранён только investigation.json")
+        log("  files of this version are disabled in PSI, only investigation.json was saved")
         return summary
 
     tree = post_json(
@@ -469,8 +469,8 @@ def process_investigation(source: dict, out_root: Path, guard: DiskGuard, manife
         )
     del nodes
     log(
-        f"  к скачиванию {summary['keep_files']} файлов, {human(summary['keep_bytes'])}; "
-        f"пропущено архивов/медиа {human(sum(summary['skip_bytes'].values()))}"
+        f"  to download: {summary['keep_files']} files, {human(summary['keep_bytes'])}; "
+        f"skipped archives/media: {human(sum(summary['skip_bytes'].values()))}"
     )
     if dry_run or guard.stopped:
         return summary
@@ -484,9 +484,9 @@ def process_investigation(source: dict, out_root: Path, guard: DiskGuard, manife
             summary[status] = summary.get(status, 0) + 1
             done += 1
             if status == "failed":
-                log(f"  ошибка {result['path']}: {result.get('error', '')[:180]}")
+                log(f"  error {result['path']}: {result.get('error', '')[:180]}")
             if done % 25 == 0 or done == len(futures):
-                log(f"  прогресс {done}/{len(futures)}")
+                log(f"  progress {done}/{len(futures)}")
     if guard.stopped and guard.stop_reason:
         log(guard.stop_reason)
     return summary
@@ -509,39 +509,39 @@ def write_catalog(out_root: Path, dry_run: bool, guard: DiskGuard, summaries: li
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Download NASA PSI combustion databases (no photos or video).")
-    parser.add_argument("--out", default="data", help="папка для данных (по умолчанию data)")
-    parser.add_argument("--env", default=".env", help="файл с NASA_TOKEN")
-    parser.add_argument("--min-free-gb", type=float, default=20.0, help="остановиться, если свободного места останется меньше этого порога")
+    parser.add_argument("--out", default="data", help="output folder (default: data, relative to this script)")
+    parser.add_argument("--env", default=".env", help="file with NASA_TOKEN")
+    parser.add_argument("--min-free-gb", type=float, default=20.0, help="stop if free disk space would drop below this many GB")
     parser.add_argument("--workers", type=int, default=20)
     parser.add_argument("--retries", type=int, default=4)
-    parser.add_argument("--dry-run", action="store_true", help="только посчитать объём, ничего не скачивать")
-    parser.add_argument("--only", default="", help="список PSI-id через запятую, например PSI-69,PSI-98")
+    parser.add_argument("--dry-run", action="store_true", help="only count the size, download nothing")
+    parser.add_argument("--only", default="", help="comma-separated PSI ids, e.g. PSI-69,PSI-98")
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parent
     load_dotenv(root / args.env)
     token_name = "NASA_TOKEN" if os.environ.get("NASA_TOKEN") else ("NASA_TOKE" if os.environ.get("NASA_TOKE") else "")
     if token_name:
-        log(f"Ключ {token_name} прочитан. PSI отдаёт эти файлы без авторизации, ключ уйдёт только на nasa.gov если сервер его попросит.")
+        log(f"{token_name} loaded. PSI serves these files without auth; the key is only sent to nasa.gov hosts if asked.")
     else:
-        log("Ключ Earthdata не найден. Для публичного PSI он не нужен, продолжаю.")
+        log("No Earthdata key found. Public PSI does not need one, continuing.")
 
     out_root = Path(args.out)
     if not out_root.is_absolute():
         out_root = root / out_root
     out_root.mkdir(parents=True, exist_ok=True)
     min_free = int(args.min_free_gb * 1024 ** 3)
-    log(f"Папка: {out_root}")
-    log(f"Потоков: {args.workers}. У каждого потока своя сессия requests, TCP к PSI и S3 не закрывается между файлами.")
-    log(f"Свободно сейчас: {human(free_bytes(out_root))}. Порог остановки: {human(min_free)}.")
+    log(f"Folder: {out_root}")
+    log(f"Workers: {args.workers}. Each has its own requests session, so connections to PSI and S3 are reused between files.")
+    log(f"Free now: {human(free_bytes(out_root))}. Stop threshold: {human(min_free)}.")
 
     investigations = list_investigations()
     if args.only:
         wanted = {item.strip() for item in args.only.split(",") if item.strip()}
         investigations = [row for row in investigations if row.get("Accession") in wanted]
-    log(f"Исследований Combustion Science: {len(investigations)}")
+    log(f"Combustion Science investigations: {len(investigations)}")
     if not investigations:
-        log("PSI не вернул ни одного исследования. Проверь сеть и попробуй ещё раз.")
+        log("PSI returned no investigations. Check the network and try again.")
         return 1
 
     manifest = out_root / "manifest.jsonl"
@@ -555,17 +555,17 @@ def main() -> int:
                 process_investigation(source, out_root, guard, manifest, args.workers, args.retries, args.dry_run)
             )
         except Exception as exc:  # noqa: BLE001 - one bad investigation should not drop the rest
-            log(f"  не смог обработать {source.get('Accession')}: {type(exc).__name__}: {exc}")
+            log(f"  could not process {source.get('Accession')}: {type(exc).__name__}: {exc}")
             summaries.append({"accession": source.get("Accession"), "error": str(exc)})
         write_catalog(out_root, args.dry_run, guard, summaries)
 
     catalog = json.loads((out_root / "catalog.json").read_text(encoding="utf-8"))
     log(
-        f"\nГотово. Базы и документы: {catalog['keep_files']} файлов, {human(catalog['keep_bytes'])}."
+        f"\nDone. Data and documents: {catalog['keep_files']} files, {human(catalog['keep_bytes'])}."
     )
     if guard.stopped:
         log(guard.stop_reason)
-        log("Докачай позже той же командой: уже скачанные файлы нужного размера пропускаются.")
+        log("Run the same command again to resume: files already on disk with the right size are skipped.")
         return 2
     return 0
 

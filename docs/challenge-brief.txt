@@ -72,4 +72,4 @@ NASA Data & Resources
 [New Technology for the Fire Attire](https://spinoff.nasa.gov/node/9918): Basic information about a 1980s application of NASA spacesuit technology to improve firefighter clothing.
 
 
-уже скачанные данные есть в /home/zrn59/code/pre_nasa а примерный дезайн сайта https://www.figma.com/design/Sj8RJ8Wvz5rDjYP7uhXJha
+Team notes: the downloaded PSI data lives in ../pre_nasa next to this repository. Rough site design (Figma): https://www.figma.com/design/Sj8RJ8Wvz5rDjYP7uhXJha

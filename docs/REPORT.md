@@ -1,214 +1,212 @@
-# Отчёт команды sulateam: IGNIS
+# IGNIS — project report, team sulateam
 
-NASA Space Apps Challenge 2026, задача «Flame in Freefall: SI-Powered Fire Safety Insights from Microgravity Combustion Data».
+NASA Space Apps Challenge 2026, “Flame in Freefall: SI-Powered Fire Safety Insights from Microgravity Combustion Data”.
 
-По правилам хакатона нужно перечислить, какие данные, материалы, библиотеки и ИИ-инструменты были в проекте. Ниже это есть. Ещё мы описали, как работали: кто чем занимался и где пригодился ИИ.
+The hackathon rules ask teams to list the data, materials, libraries and AI tools they used. This report does that, and also explains how we worked as a team, who did what, and where AI fit in.
 
-Состояние на 15 ноября 2026 года.
+State as of 15 November 2026.
 
-## Команда и роли
+## Team and roles
 
-Нас несколько человек, и работу мы делили по направлениям. Каждый отвечал за свою часть, но все важные решения принимали вместе: что показывать на главной, как считать балл близости, где честно написать «данных нет».
+There are four of us. We split the work by area. Everyone owned their part, but we made the big decisions together: what goes on the home page, how the proximity score works, where to say plainly that there is no data.
 
-| Роль | Кто | Чем занимался |
-|---|---|---|
-| Данные и исследование | [имя] | Разбирал архив PSI и условие задачи, написал загрузчик, проверял файлы, искал битые и пропавшие. Решал, какие таблицы и записи датчиков брать в работу. |
-| Бэкенд и поиск | [имя] | Сборка базы, нормализация таблиц (кислород в %, давление в кПа), поиск, ассистент и его проверка ответов. |
-| Фронтенд и дизайн | [имя] | Макет в Figma, интерфейс, графики, мобильная версия, редизайн в духе nasa.gov. |
-| Тексты, презентация, тестирование | [имя] | Тексты на русском и английском, вопросы для проверки ассистента, прогон сайта глазами судьи, защита проекта. |
-| Сервер | [имя] | Развёртывание на нашем сервере, systemd, git-хук, сборка и выкладка фронтенда. |
+| Member | Role | What they did | GitHub |
+|---|---|---|---|
+| Arsen | Presentation, site design, planning | Planned the project and the schedule, made the Figma mockup and the visual direction, built the presentation. | [arsenkaldybaev2009-svg](https://github.com/arsenkaldybaev2009-svg) |
+| Vadim | Backend, data collection and analysis, hosting | Downloaded and checked the PSI archive, decided which tables and sensor recordings to use, built the database, search and the assistant, runs the server. | [Zrn59](https://github.com/Zrn59) |
+| Erhan | Frontend | Built the interface: pages, charts, the atmosphere map, telemetry player, mobile layout. | [KiBeR9](https://github.com/KiBeR9) |
+| Alikhan | Presentation support, testing | Helped with the presentation, went through the site as an outsider, tried the assistant with real questions and reported what was confusing or wrong. | [Allikhan166](https://github.com/Allikhan166) |
 
-## Как мы работали
+## How we worked
 
-Начали с того, что вместе разобрали условие и собрали ТЗ (`ТЗ.txt`): условие задачи, где лежат данные и ссылка на макет. Дальше нарисовали примерный макет в Figma и только потом сели за код.
+We started by reading the challenge together and writing a short brief (`docs/challenge-brief.txt`): the challenge text, where the data lives and a link to the mockup. Arsen drew a rough design in Figma before anyone wrote code.
 
-Дальше работали короткими кругами:
+After that we worked in short loops:
 
-1. Обсуждали, что в текущей версии неудобно или непонятно и что поменять.
-2. Делили задачи по ролям.
-3. Делали изменения. Код писали в редакторе с ИИ-ассистентом (подробнее в разделе 5): ставили задачу, смотрели, что получилось, правили руками или отбрасывали.
-4. Проверяли в браузере на компьютере и телефоне, задавали ассистенту свои вопросы и смотрели, на что он ссылается.
-5. Сливали изменения в `main` и выкладывали на сервер.
+1. Talk through what is inconvenient or unclear in the current version and what to change. Testing notes from Alikhan were usually the starting point.
+2. Split the tasks by role.
+3. Make the changes. We wrote code with AI coding assistants (see section 5): we described the task, read what came back, then fixed it by hand or threw it away.
+4. Check in the browser on desktop and phone. Ask the assistant our own questions and look at what it cites.
+5. Merge into `main` and deploy to our server.
 
-Несколько решений, о которых мы спорили дольше всего:
+Decisions we argued about the longest:
 
-- **Что делать с Луной и Марсом.** Данных при частичной гравитации в PSI нет. Мы решили не изображать расчёт там, где его нет, и везде показываем Луну и Марс как «между 0 g и 1 g».
-- **Ассистенту нельзя верить на слово.** Поэтому он отвечает только по найденным фрагментам, у каждой фразы есть ссылка, а числа сверяются с источником автоматически. Когда модель недоступна, сайт показывает сами фрагменты, а не пустое место.
-- **Балл близости.** Мы не хотели «чёрный ящик», поэтому балл разложен на четыре части, и каждая видна.
-- **Дизайн.** Сначала сайт выглядел как типичный шаблон. Мы сознательно перешли к стилю, близкому к nasa.gov: чёрный, белый, один красный акцент, настоящие фотографии из архива вместо картинок-заглушек. Логотипы NASA при этом не используем.
-- **Вопросы о величинах.** После тестов заметили, что на такие вопросы ассистент отвечал по PDF, а не по таблицам. Переделали поиск так, чтобы он находил нужный столбец таблицы, и написали набор контрольных вопросов (`backend/eval_search.py`), чтобы не сломать это снова.
+- **The Moon and Mars.** PSI has no partial-gravity data. We decided not to fake a calculation where there is none. The site always presents the Moon and Mars as bounded between 0 g and 1 g.
+- **The assistant must not be trusted on its word.** It answers only from retrieved passages, every sentence carries a citation, and numbers are checked against the source automatically. When the model is down, the site shows the passages instead of an empty box.
+- **The proximity score.** We did not want a black box, so the score is split into four parts and each part is visible.
+- **Design.** The first version looked like a generic template. We moved on purpose to a style close to nasa.gov: black, white, one red accent, real photos from the archive instead of placeholders. NASA logos are not used.
+- **Questions about measured values.** In testing we noticed that such questions were answered from PDFs rather than from the tables. We reworked search so it finds the right table column, and wrote a set of control questions (`backend/eval_search.py`) so it does not break again.
 
-## 1. Данные NASA
+## 1. NASA data
 
-### Physical Sciences Informatics (PSI), раздел Combustion Science
+### Physical Sciences Informatics (PSI), Combustion Science
 
-Основной источник — https://psi.nasa.gov/physci/repo/search?q=combustion, его указывает условие задачи.
+The main source is https://psi.nasa.gov/physci/repo/search?q=combustion, the one named in the challenge.
 
-Архив мы скачали своим скриптом (`scripts/download_combustion_data.py`). Последний раз сверили его с каталогом PSI 14 ноября 2026 года: исследований по-прежнему 24, новых нет. Вот что в итоге получилось:
+We downloaded the archive with our own script (`scripts/download_combustion_data.py`). The last check against the live PSI catalog was on 14 November 2026: still 24 investigations, nothing new. What we ended up with:
 
-- 22 311 файлов, 12,8 ГБ: таблицы испытаний, записи датчиков, отчёты, статьи, презентации, карточки исследований.
-- Фото, видео и архивы кадров не брали. Весь архив этих исследований весит около 13,5 ТБ, почти всё это съёмка.
-- 2 623 файла есть в каталоге, но хранилище NASA отдаёт на них 404. Мы это не прячем: на сайте у каждого исследования видно, чего не хватает.
-- Лицензия PSI — CC0 1.0. Исключение — PSI-10, у него поле лицензии пустое.
+- 22,311 files, 12.8 GB: test tables, sensor recordings, reports, papers, presentations, investigation records.
+- No photos, video or camera-frame archives. The full archive of these investigations is about 13.5 TB, almost all of it imagery.
+- 2,623 files are listed in the catalog, but NASA storage returns 404 for them. We do not hide this: every investigation page on the site shows what is missing.
+- PSI data is licensed CC0 1.0. The exception is PSI-10, whose license field is empty.
 
-| ID | Исследование | Где | Испытаний | Таблиц |
+| ID | Investigation | Where | Tests | Tables |
 |---|---|---|---:|---:|
-| PSI-10 | ACME Flame Design | МКС | 327 | 2 |
-| PSI-20 | ACME BRE | МКС | 194 | 1 |
-| PSI-21 | ACME CLD Flame | МКС | 344 | 1 |
-| PSI-22 | ACME E-FIELD Flames | МКС | 230 | 1 |
-| PSI-23 | ACME s-Flame | МКС | 276 | 1 |
-| PSI-25 | BASS-II | МКС | 129 | 1 |
-| PSI-26 | BASS | МКС | 122 | 1 |
-| PSI-39 | CFI | МКС | 87 | 1 |
-| PSI-47 | DAFT / DAFT-2 | МКС | 2 | 1 |
-| PSI-60 | Анализ данных SPICE | земля | — | — |
-| PSI-62 | Модель распространения пламени по BASS | земля | — | — |
-| PSI-68 | FLEX-2 | МКС | — | 1 |
-| PSI-69 | FLEX | МКС | 274 | 1 |
+| PSI-10 | ACME Flame Design | ISS | 327 | 2 |
+| PSI-20 | ACME BRE | ISS | 194 | 1 |
+| PSI-21 | ACME CLD Flame | ISS | 344 | 1 |
+| PSI-22 | ACME E-FIELD Flames | ISS | 230 | 1 |
+| PSI-23 | ACME s-Flame | ISS | 276 | 1 |
+| PSI-25 | BASS-II | ISS | 129 | 1 |
+| PSI-26 | BASS | ISS | 122 | 1 |
+| PSI-39 | CFI | ISS | 87 | 1 |
+| PSI-47 | DAFT / DAFT-2 | ISS | 2 | 1 |
+| PSI-60 | SPICE data analysis | ground | — | — |
+| PSI-62 | BASS flame-spread model | ground | — | — |
+| PSI-68 | FLEX-2 | ISS | — | 1 |
+| PSI-69 | FLEX | ISS | 274 | 1 |
 | PSI-98 | Saffire-I | Cygnus | 2 | 1 |
 | PSI-99 | Saffire-II | Cygnus | 9 | 1 |
 | PSI-100 | Saffire-III | Cygnus | 2 | 1 |
-| PSI-101 | SAME-R | МКС | 109 | 1 |
-| PSI-102 | SAME | МКС | 8 | 1 |
-| PSI-106 | SLICE | МКС | 12 | 1 |
-| PSI-107 | SPICE | МКС | 469 | 1 |
-| PSI-115 | Модель дыма по данным SAME | земля | — | — |
-| PSI-117 | CFD холодных пламён FLEX | земля | — | — |
-| PSI-142 | Пределы холодных пламён | земля | — | 1 |
-| PSI-159 | ACME CFI-G | МКС | 333 | 2 |
+| PSI-101 | SAME-R | ISS | 109 | 1 |
+| PSI-102 | SAME | ISS | 8 | 1 |
+| PSI-106 | SLICE | ISS | 12 | 1 |
+| PSI-107 | SPICE | ISS | 469 | 1 |
+| PSI-115 | SAME smoke model | ground | — | — |
+| PSI-117 | FLEX cool-flame CFD | ground | — | — |
+| PSI-142 | Cool-flame limits | ground | — | 1 |
+| PSI-159 | ACME CFI-G | ISS | 333 | 2 |
 
-Всего 24 исследования (19 полётных и 5 наземных), 22 таблицы и 2 929 испытаний. Ещё у нас текст 135 PDF-документов и 352 публикации из карточек.
+In total: 24 investigations (19 flight, 5 ground), 22 tables and 2,929 tests. We also index the text of 135 PDF documents and 352 publications listed in the records.
 
-Для раздела «Телеметрия» мы выбрали шесть полётных записей датчиков:
+For the Telemetry section we picked six flight sensor recordings:
 
 - `PSI-100/Raw Data/PSI-100_Raw Data_Saffire III Sample 1 Sensors.xlsx`
 - `PSI-99/Raw Data/PSI-99_Raw Data_Saffire Sensor Data Sample 5.xlsx`
-- `PSI-69/Raw Data/PSI-69_Raw Data_FLEX-035_DropletData.txt` (и FLEX-010, FLEX-235)
+- `PSI-69/Raw Data/PSI-69_Raw Data_FLEX-035_DropletData.txt` (plus FLEX-010 and FLEX-235)
 - `PSI-22/Raw Data/PSI-22_Raw Data_18073A3_data.csv`
 - `PSI-20/Raw Data/PSI-20_Raw Data_19039A1_data.csv`
 - `PSI-159/Raw Data/PSI-159_Raw Data_21202A1_data.csv`
 
-Распределение частиц дыма для 0 g и 1 g взято из сеток PSI-115 (файлы `.dat` в папке Analyzed Data).
+The 0 g and 1 g smoke particle distributions come from the PSI-115 grids (`.dat` files in Analyzed Data).
 
-### Материалы из списка ресурсов задачи
+### Materials from the challenge resource list
 
-- **A Researcher’s Guide to International Space Station Combustion Science** (NASA, 2015, NP-2015-10-034-JSC). Её текст есть в поиске ассистента, а иллюстрации на сайте взяты из неё.
-- **Страница NASA Combustion Science** (Glenn) — текст в поиске.
-- **Описания экспериментов (fact sheets), июль 2025:** ACME, BASS, DAFT, FLEX, Saffire, SAME, SLICE, SPICE. Текст в поиске и ссылки на сайте.
-- **Apollo 1 и Apollo 13** (NASA SMA) и **«25 Years Ago: Fire Aboard Space Station Mir»**. Из них лента «От Apollo 1 до Artemis II» и текст в поиске.
-- **NASA Spinoff:** Fireman’s Air Tanks, Fire Detector, New Technology for the Fire Attire. Из них раздел «На Земле».
-- **Текст условия задачи:** цитата экипажа Artemis II и параметры атмосферы лунной базы.
+- **A Researcher’s Guide to International Space Station Combustion Science** (NASA, 2015, NP-2015-10-034-JSC). Its text is searchable by the assistant, and the site’s illustrations come from it.
+- **NASA Combustion Science page** (Glenn): searchable text.
+- **Experiment fact sheets, July 2025:** ACME, BASS, DAFT, FLEX, Saffire, SAME, SLICE, SPICE. Searchable text and links on the site.
+- **Apollo 1 and Apollo 13** (NASA SMA) and **“25 Years Ago: Fire Aboard Space Station Mir”**: the “From Apollo 1 to Artemis II” timeline and searchable text.
+- **NASA Spinoff:** Fireman’s Air Tanks, Fire Detector, New Technology for the Fire Attire: the “On Earth” section.
+- **The challenge statement:** the Artemis II crew quote and the lunar-base atmosphere parameters.
 
-Видео ScienceCasts в проект не вошло.
+The ScienceCasts video was not used in the project.
 
-## 2. Изображения
+## 2. Images
 
-Логотипов NASA на сайте нет. В подвале написано, что это не официальный ресурс NASA.
+There are no NASA logos on the site, and the footer says it is not an official NASA resource.
 
-Все 14 фотографий в `frontend/public/img/` взяты из материалов NASA. Под каждым снимком на сайте есть подпись и источник.
+All 14 photos in `frontend/public/img/` are NASA material. Every photo on the site has a caption and a source line.
 
-| Файл | Откуда |
+| File | Source |
 |---|---|
 | `iss.jpg` | Researcher’s Guide, 2015 |
-| `candle-1g.jpg`, `candle-0g.jpg` | Researcher’s Guide: свеча на Земле и в невесомости |
-| `compare.jpg`, `flex.jpg`, `flex2.jpg`, `spice.jpg`, `slice.jpg` | Researcher’s Guide, рис. 1–5 |
-| `flame-design.jpg`, `s-flame.jpg` | Researcher’s Guide, рис. 6 и 7 |
-| `bass-spread.jpg`, `bass-sphere.jpg`, `drop-tower.jpg` | Researcher’s Guide, рис. 9, 11 и 13 |
-| `spice-iss.jpg` | кадр бортового видео из сырых данных PSI-107 (SPICE) |
+| `candle-1g.jpg`, `candle-0g.jpg` | Researcher’s Guide: a candle on Earth and in microgravity |
+| `compare.jpg`, `flex.jpg`, `flex2.jpg`, `spice.jpg`, `slice.jpg` | Researcher’s Guide, figs. 1–5 |
+| `flame-design.jpg`, `s-flame.jpg` | Researcher’s Guide, figs. 6 and 7 |
+| `bass-spread.jpg`, `bass-sphere.jpg`, `drop-tower.jpg` | Researcher’s Guide, figs. 9, 11 and 13 |
+| `spice-iss.jpg` | a frame of onboard video from the PSI-107 (SPICE) raw data |
 
-Картинки мы вытащили из PDF утилитой `pdfimages` (poppler) и обработали в ImageMagick. Исходники были в CMYK и выглядели как негатив, поэтому мы перевели их в sRGB, обрезали и сжали. Содержание не меняли.
+We extracted the images from the PDF with `pdfimages` (poppler) and processed them in ImageMagick. The originals were CMYK and came out as negatives, so we converted them to sRGB, cropped and compressed them. The content was not changed.
 
-Пламя на главной — наша анимация на Canvas, а не снимок и не расчёт. Об этом сказано в подписи.
+The flame on the home page is our own Canvas animation, not a photo or a simulation. Its caption says so.
 
-## 3. Программы и библиотеки
+## 3. Software and libraries
 
-**Сервер (Python 3.12):**
+**Server (Python 3.12):**
 
-- FastAPI 0.115.6 (MIT) на Starlette 0.41.3 (BSD-3);
+- FastAPI 0.115.6 (MIT) on Starlette 0.41.3 (BSD-3);
 - Pydantic 2.14.3 (MIT);
 - Uvicorn 0.34.0 (BSD-3);
 - httpx 0.28.1 (BSD-3);
-- SQLite с полнотекстовым поиском FTS5 из стандартной библиотеки.
+- SQLite with FTS5 full-text search, from the standard library.
 
-Таблицы xlsx читаем сами, через `zipfile` и `xml.etree`, без сторонних пакетов.
+We read xlsx files ourselves with `zipfile` and `xml.etree`, no third-party packages.
 
-**Сборка базы:**
+**Database build:**
 
-- `pdftotext` (poppler 26.07) — текст из PDF;
-- загрузчику архива нужен пакет `requests`.
+- `pdftotext` (poppler 26.07) for PDF text;
+- the archive downloader needs the `requests` package.
 
-**Сайт (Node.js 24):**
+**Website (Node.js 24):**
 
 - React 18.3.1 (MIT);
 - TypeScript 5.9.3 (Apache-2.0);
-- Vite 5.4.21 (MIT) с @vitejs/plugin-react 4.7.0;
-- шрифты Inter, DM Mono и IBM Plex Mono через Fontsource (OFL-1.1).
+- Vite 5.4.21 (MIT) with @vitejs/plugin-react 4.7.0;
+- Inter, DM Mono and IBM Plex Mono fonts via Fontsource (OFL-1.1).
 
-Графики, карту «давление — кислород», таблицы и плеер телеметрии мы сделали сами на SVG и Canvas, без библиотек графиков.
+Charts, the pressure-vs-oxygen map, tables and the telemetry player are our own SVG and Canvas code, with no chart libraries.
 
-**Сервер для показа:** свой Linux-сервер, служба `systemd` и git-хук, который обновляет код при `git push`. Фронтенд собираем локально и копируем готовую папку `frontend/dist`.
+**Hosting:** our own Linux server, a `systemd` service and a git hook that updates the code on `git push`. The frontend is built locally and the `frontend/dist` folder is copied over.
 
-## 4. ИИ внутри продукта: ассистент по архиву
+## 4. AI inside the product: the archive assistant
 
-Ассистент работает через OpenRouter на бесплатных моделях. По умолчанию это `nvidia/nemotron-3.5-super-vl`, `baidu/ernie-5.5-flash-preview`, `nvidia/nemotron-3-ultra-550b-a55b` и `google/gemma-4-31b-it`. Модели опрашиваются по две, берётся первый нормальный ответ. Мы их не дообучали, весь архив они не видят.
+The assistant runs through OpenRouter on free models. The defaults are `nvidia/nemotron-3.5-super-vl`, `baidu/ernie-5.5-flash-preview`, `nvidia/nemotron-3-ultra-550b-a55b` and `google/gemma-4-31b-it`. They are queried two at a time, and the first usable answer wins. We did not fine-tune them, and they never see the whole archive.
 
-Как устроен ответ (`backend/search.py`, `backend/ai.py`):
+How an answer is made (`backend/search.py`, `backend/ai.py`):
 
-1. **Разбор вопроса.** Корпус почти весь на английском, поэтому русские слова переводятся по нашему глоссарию. Названия экспериментов узнаются даже в русском написании: «флекс», «сапфир». Из вопроса достаются условия вроде «34 % кислорода, 57 кПа».
-2. **Поиск.** Ищем по 9 446 фрагментам через SQLite FTS5 (BM25) и переранжируем результаты. Если вопрос про величину, добавляем статистику нужного столбца таблицы и строки с крайними значениями. Если в вопросе есть условия, добавляем ближайшие испытанные режимы.
-3. **Ответ.** Модель получает только эти пронумерованные фрагменты и должна ставить ссылку `[n]` после каждого утверждения. Если ссылок нет, её один раз просят переписать ответ.
-4. **Проверка.** Код проверяет ответ по предложениям:
-   - ссылки на несуществующие источники убираются;
-   - считается, сколько утверждений опираются на источник;
-   - каждое число должно найтись именно во фрагменте, на который ссылается эта фраза.
+1. **Reading the question.** The corpus is almost all English, so Russian words go through our glossary. Experiment names are recognized even when transliterated, and conditions such as “34 % oxygen, 57 kPa” are pulled out of the question.
+2. **Search.** SQLite FTS5 (BM25) over 9,446 passages, then reranking. For questions about a measured value we add the statistics of the matching table column and the rows with its extreme values. If the question gives conditions, we add the nearest tested regimes.
+3. **Answer.** The model sees only these numbered passages and must put an `[n]` citation after every claim. If the answer has no citations, it is asked once to rewrite it.
+4. **Check.** The code checks the answer sentence by sentence:
+   - citations to sources that do not exist are removed;
+   - it counts how many statements rely on a source;
+   - every number must be found in the very passage its sentence cites.
 
-   Итог проверки показан под ответом.
-5. **Без модели.** Если модель не ответила, сайт показывает найденные фрагменты. Остальной сайт без модели работает полностью.
+   The result of the check is shown under the answer.
+5. **Without a model.** If the model does not answer, the site shows the retrieved passages. Everything else works without a model.
 
-Быстрые ответы на главной (`backend/faq.py`) мы написали сами. Числа в них считаются из таблиц при сборке базы.
+The quick answers on the home page (`backend/faq.py`) are written by us. Their numbers are computed from the tables when the database is built.
 
-Поиск мы проверяем скриптом `python -m backend.eval_search`. В нём 21 вопрос на русском и английском, а у 7 вопросов про величины нужна ещё и строка таблицы. Сейчас проходят все 21, а до доработки поиска проходило 17, и табличные данные находились в 4 случаях из 7. Вопросы мы придумывали сами по ходу работы, так что это защита от поломок, а не независимая оценка.
+Search is tested with `python -m backend.eval_search`: 21 questions in English and Russian, and 7 of them, about measured values, must also return a table row. All 21 pass now. Before the search rework 17 passed, and table data was found in 4 of the 7 cases. We wrote the questions ourselves while working on search, so this is a regression guard, not an independent benchmark.
 
-## 5. ИИ при разработке
+## 5. AI during development
 
-Писать всё с нуля за время хакатона мы бы не успели, поэтому код в основном писали в редакторах с ИИ-ассистентами:
+We could not have written all of this from scratch within the hackathon, so most of the code was written in editors with AI coding assistants:
 
-- **Cursor** — первая версия проекта: сборка базы, API, основные страницы.
-- **Claude Code** (Anthropic, модель Claude Opus) — редизайн в стиле nasa.gov, доработка поиска и проверки ответов, интерфейс ассистента, мобильная вёрстка, обработка иллюстраций. Ещё с его помощью мы сделали черновик этого отчёта, который потом дописали сами.
+- **Cursor** — the first version of the project: database build, API, main pages.
+- **Claude Code** (Anthropic, Claude Opus model) — the nasa.gov-style redesign, the search and answer-check rework, the assistant interface, the mobile layout, image processing, and a first draft of this report, which we then edited.
 
-ИИ для нас был инструментом, чтобы быстро писать и править код. Что делать, решали мы сами:
+For us AI was a tool for writing and editing code quickly. The decisions were ours:
 
-- придумали идею и структуру сайта;
-- выбрали данные;
-- приняли решения из раздела «Как мы работали»;
-- проверяли каждое изменение.
+- the idea and the structure of the site;
+- the choice of data;
+- the design;
+- the decisions listed under “How we worked”;
+- checking every change.
 
-Когда предложенный вариант не подходил, мы его отклоняли или переделывали. Факты на сайте сверены с архивом PSI. В истории git это видно по пометкам Co-authored-by.
+When a suggestion did not fit, we rejected or reworked it. Facts on the site were checked against the PSI archive. This is also visible in the git history through the Co-authored-by lines.
 
-[заполнить: если ИИ использовался ещё где-то, например для презентации, видео или перевода, допишите сюда]
+## 6. Our assumptions
 
-## 6. Наши допущения
+These assumptions are also shown on the site itself:
 
-Эти допущения видны и на самом сайте:
+- **Habitat atmospheres:**
+  - ISS: 21 % at 101.3 kPa.
+  - Spacecraft: 26.5 % at 70.3 kPa (10.2 psia).
+  - Lunar base and rover: 34 % at 56.5 kPa (8.2 psia), 1/6 g.
+  - Spacesuit: 100 % at 29.6 kPa (4.3 psi).
 
-- **Атмосферы.**
-  - МКС: 21 % и 101,3 кПа.
-  - Корабль: 26,5 % и 70,3 кПа (10,2 psia).
-  - Лунная база и ровер: 34 % и 56,5 кПа (8,2 psia) при 1/6 g.
-  - Скафандр: 100 % и 29,6 кПа (4,3 psi).
+  The values come from the challenge statement and the PSI-20 record.
+- **The Mars base.** The challenge does not specify its atmosphere. We used the lunar-base atmosphere at 0.38 g and marked it as an assumption.
+- **The proximity score** is made up of oxygen (up to 4 points), pressure (up to 2), fire-safety relevance (up to 3) and gravity (up to 1). It is a way to sort the list, not a risk estimate.
+- **Missing pressure.** When a table does not state pressure, the conditions map uses 101 kPa and marks those points separately.
 
-  Значения взяты из условия задачи и карточки PSI-20.
-- **Марсианская база.** Условие её атмосферу не задаёт. Мы взяли ту же, что у лунной базы, при 0,38 g и пометили это как допущение.
-- **Балл близости** складывается так: кислород до 4 баллов, давление до 2, связь с пожарной безопасностью до 3, гравитация до 1. Это способ отсортировать список, а не оценка риска.
-- **Пропущенное давление.** Если в таблице давление не указано, на карте условий берём 101 кПа и отмечаем такие точки отдельно.
-
-## 7. Как запустить и проверить
+## 7. Running and checking
 
 ```bash
-./run.sh setup                            # зависимости
-./run.sh serve                            # сайт на http://127.0.0.1:8000, API на /docs
-.venv/bin/python -m backend.eval_search   # проверка поиска, без сети
+./run.sh setup                            # dependencies
+./run.sh serve                            # site on http://127.0.0.1:8000, API on /docs
+.venv/bin/python -m backend.eval_search   # search check, offline
 ```
 
-Готовая база `data/ignis.db` лежит в репозитории. Чтобы собрать её заново, нужно скачать архив PSI (около 13 ГБ) командой `python scripts/download_combustion_data.py --out "$PWD/../pre_nasa/data"`, ей нужен пакет `requests`. Потом запустить `./run.sh build`.
+The built database `data/ignis.db` is in the repository. To rebuild it, download the PSI archive (about 13 GB) with `python scripts/download_combustion_data.py --out "$PWD/../pre_nasa/data"` (needs `requests`), then run `./run.sh build`.
