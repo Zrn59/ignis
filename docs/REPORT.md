@@ -14,7 +14,7 @@ There are four of us. We split the work by area. Everyone owned their part, but 
 |---|---|---|---|
 | Arsen | Presentation, site design, planning | Planned the project and the schedule, made the Figma mockup and the visual direction, built the presentation. | [arsenkaldybaev2009-svg](https://github.com/arsenkaldybaev2009-svg) |
 | Vadim | Backend, data collection and analysis, hosting | Downloaded and checked the PSI archive, decided which tables and sensor recordings to use, built the database, search and the assistant, runs the server. | [Zrn59](https://github.com/Zrn59) |
-| Erhan | Frontend | Built the interface: pages, charts, the atmosphere map, telemetry player, mobile layout. | [KiBeR9](https://github.com/KiBeR9) |
+| Erhan | Frontend | Built the interface: pages, charts, the atmosphere map, telemetry player, mobile layout. | [kiber9](https://github.com/kiber9) |
 | Alikhan | Presentation support, testing | Helped with the presentation, went through the site as an outsider, tried the assistant with real questions and reported what was confusing or wrong. | [Allikhan166](https://github.com/Allikhan166) |
 
 ## How we worked
