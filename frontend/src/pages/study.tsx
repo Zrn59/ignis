@@ -4,6 +4,7 @@ import { AtmosphereMap, MapLegend } from "../components/atmosphere-map";
 import { linear, useWidth } from "../components/chart-utils";
 import { EnvPicker, ErrorBox, Figure, Icon, Loading, PageHead, PlatformTag, Readout, ScoreMeter, StateTag } from "../components/ui";
 import { fmtBytes, fmtDate, fmtNum, fmtRange, fmtYears } from "../i18n";
+import { studyPhoto } from "../media";
 import { go, href, useAsync, useStore } from "../store";
 
 export function StudyPage({ id }: { id: string }) {
@@ -22,8 +23,9 @@ export function StudyPage({ id }: { id: string }) {
   return (
     <>
       <PageHead
-        crumbs={<><a href={href("studies")}>{t("nav.studies")}</a><span>/</span><span>{study.id}</span></>}
-        title={<>{study.short}{study.acronym !== study.short && <span className="muted" style={{ fontWeight: 400 }}> · {study.acronym}</span>}</>}
+        photo={studyPhoto(study.id)}
+        crumbs={<><a href={href("studies")}>{t("nav.studies")}</a><span>/</span><span>{study.id}</span>{study.acronym !== study.short && <><span>/</span><span>{study.acronym}</span></>}</>}
+        title={study.short}
         lead={<>{lang === "ru" ? study.title_ru : study.title}. {study.summary[lang]}</>}
         aside={
           <div className="row">

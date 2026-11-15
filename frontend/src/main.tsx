@@ -1,13 +1,12 @@
 import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import "@fontsource/ibm-plex-sans/400.css";
-import "@fontsource/ibm-plex-sans/500.css";
-import "@fontsource/ibm-plex-sans/600.css";
-import "@fontsource/ibm-plex-sans-condensed/600.css";
-import "@fontsource/ibm-plex-mono/400.css";
-import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource-variable/inter";
+import "@fontsource/dm-mono/400.css";
+import "@fontsource/dm-mono/500.css";
+import "@fontsource/ibm-plex-mono/cyrillic-400.css";
+import "@fontsource/ibm-plex-mono/cyrillic-500.css";
 import "./styles.css";
-import { CommandPalette, Footer, SECTIONS, Topbar } from "./components/layout";
+import { BackToTop, CommandPalette, Footer, SECTIONS, Topbar } from "./components/layout";
 import { TableViewer } from "./components/table-viewer";
 import { ErrorBox } from "./components/ui";
 import { AskPage } from "./pages/ask";
@@ -60,12 +59,13 @@ function App() {
   return (
     <>
       <Topbar section={section} />
-      <main>
+      <main id="main">
         {loadError ? <div className="wrap page-body"><ErrorBox message={loadError} /></div> : <Page key={pageKey} section={section} id={id} />}
       </main>
       {section !== "ask" && <Footer />}
       <TableViewer />
       <CommandPalette />
+      <BackToTop />
     </>
   );
 }

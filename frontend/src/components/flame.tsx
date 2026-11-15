@@ -13,7 +13,7 @@ interface Spark {
   alive: boolean;
 }
 
-const BG = "#07090c";
+const BG = "#000000";
 const STRETCH = 2.2;
 const BLUE = [56, 128, 255];
 const AMBER = [255, 168, 64];

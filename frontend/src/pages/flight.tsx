@@ -1,6 +1,7 @@
 import { api, type Workbench } from "../api";
 import { SmokeChart, TracePlayer } from "../components/telemetry";
-import { ErrorBox, Figure, Icon, Loading, SectionHead } from "../components/ui";
+import { ErrorBox, Figure, Icon, Loading, PageHead, SectionHead } from "../components/ui";
+import { PHOTOS } from "../media";
 import type { Key } from "../i18n";
 import { fmtNum, pick } from "../i18n";
 import { go, href, useAsync, useStore } from "../store";
@@ -23,13 +24,7 @@ export function FlightPage({ traceId }: { traceId?: string }) {
   return (
     <>
       <div className="dark">
-        <header className="page-head" style={{ background: "var(--void)", borderColor: "var(--void-line)" }}>
-          <div className="wrap">
-            <div className="label">ISS · Cygnus · CIR · MSG</div>
-            <h1 style={{ color: "var(--void-ink)" }}>{t("flight.title")}</h1>
-            <p className="lead">{t("flight.lead")}</p>
-          </div>
-        </header>
+        <PageHead eyebrow="ISS · Cygnus · CIR · MSG" title={t("flight.title")} lead={t("flight.lead")} photo={PHOTOS.spiceIss} />
         <div className="wrap" style={{ paddingTop: 28, paddingBottom: 56 }}>
           <div className="trace-picker">
             {data.traces.map((tr) => (

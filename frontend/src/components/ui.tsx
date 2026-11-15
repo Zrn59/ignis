@@ -1,6 +1,7 @@
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import type { Flag, Proximity, ScorePart, State, Study } from "../api";
 import { fmtNum } from "../i18n";
+import type { Photo } from "../media";
 import { useStore } from "../store";
 
 const paths: Record<string, string> = {
@@ -25,6 +26,9 @@ const paths: Record<string, string> = {
   flame: "M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.4 1.2-3.8 2.5-5 .3 1.6 1.1 2.6 2.5 3-1-3.2-.5-5.6 0-8z",
   chat: "M4 5h16v11H9l-5 4z",
   layers: "M12 3l9 5-9 5-9-5zM3 13l9 5 9-5",
+  chevron: "M9 6l6 6-6 6",
+  back: "M15 6l-6 6 6 6",
+  swap: "M8 7l-4 5 4 5M16 7l4 5-4 5",
 };
 
 export function Icon({ name, size = 16 }: { name: keyof typeof paths | string; size?: number }) {
@@ -39,12 +43,46 @@ export function Icon({ name, size = 16 }: { name: keyof typeof paths | string; s
 /** A spherical microgravity flame around a droplet: the project mark. */
 export function Logo() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" fill="none" stroke="#1f64e0" strokeWidth="1.4" opacity=".55" />
-      <circle cx="12" cy="12" r="6.5" fill="none" stroke="#1f64e0" strokeWidth="1.8" />
-      <circle cx="12" cy="12" r="2.2" fill="#e59a2b" />
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <defs>
+        <radialGradient id="ignis-core" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stopColor="#ffd28a" />
+          <stop offset=".35" stopColor="#ff8a3d" />
+          <stop offset="1" stopColor="#fc3d21" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="24" cy="24" r="22.5" fill="none" stroke="currentColor" strokeWidth="1.5" opacity=".9" />
+      <circle cx="24" cy="24" r="14" fill="none" stroke="#3b82ff" strokeWidth="3" />
+      <circle cx="24" cy="24" r="9" fill="url(#ignis-core)" />
+      <circle cx="24" cy="24" r="2.6" fill="#fff" />
     </svg>
   );
+}
+
+/** NASA-style call to action: label followed by a red circle with an arrow. */
+export function Go({ href, onClick, children, small = false, ghost = false, external = false }: {
+  href?: string; onClick?: () => void; children: ReactNode; small?: boolean; ghost?: boolean; external?: boolean;
+}) {
+  const cls = `go${small ? " small" : ""}${ghost ? " ghost" : ""}`;
+  const inner = <>{children}<span className="dot"><Icon name={external ? "external" : "arrow"} /></span></>;
+  if (href) return <a className={cls} href={href} {...(external ? { target: "_blank", rel: "noreferrer" } : {})}>{inner}</a>;
+  return <button type="button" className={cls} onClick={onClick}>{inner}</button>;
+}
+
+/** Fades a block in once it scrolls into view. */
+export function Reveal({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!("IntersectionObserver" in window)) { el.classList.add("in"); return; }
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { el.classList.add("in"); io.disconnect(); }
+    }, { rootMargin: "0px 0px -8% 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return <div ref={ref} className={`reveal ${className}`} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
 }
 
 export function Loading() {
@@ -187,7 +225,7 @@ export function SectionHead({ overline, title, lead, aside }: { overline?: React
   return (
     <div className="section-head">
       <div className="stack">
-        {overline && <div className="label">{overline}</div>}
+        {overline && <div className="eyebrow">{overline}</div>}
         <h2>{title}</h2>
         {lead && <p>{lead}</p>}
       </div>
@@ -196,13 +234,23 @@ export function SectionHead({ overline, title, lead, aside }: { overline?: React
   );
 }
 
-export function PageHead({ crumbs, title, lead, aside }: { crumbs?: ReactNode; title: ReactNode; lead?: ReactNode; aside?: ReactNode }) {
+export function PageHead({ crumbs, eyebrow, title, lead, aside, photo }: {
+  crumbs?: ReactNode; eyebrow?: ReactNode; title: ReactNode; lead?: ReactNode; aside?: ReactNode; photo?: Photo | null;
+}) {
+  const { lang } = useStore();
   return (
     <header className="page-head">
+      {photo && (
+        <figure className="page-head-photo" style={{ margin: 0 }}>
+          <img src={photo.src} alt={photo.caption[lang]} />
+          <figcaption>{photo.caption[lang]} · {photo.credit}</figcaption>
+        </figure>
+      )}
       <div className="wrap">
-        <div className="row" style={{ alignItems: "flex-end", gap: 24 }}>
+        <div className="row" style={{ alignItems: "flex-end", gap: 32 }}>
           <div style={{ flex: 1, minWidth: 280 }}>
             {crumbs && <div className="crumbs">{crumbs}</div>}
+            {eyebrow && !crumbs && <div className="eyebrow" style={{ color: "#bdbdbd" }}>{eyebrow}</div>}
             <h1>{title}</h1>
             {lead && <p className="lead">{lead}</p>}
           </div>

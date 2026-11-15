@@ -1,5 +1,6 @@
 import type { Ranked, Study } from "../api";
 import { fmtNum, fmtRange, fmtYears } from "../i18n";
+import { studyPhoto } from "../media";
 import { href, useStore } from "../store";
 import { Icon, PlatformTag, ScoreMeter, StateTag } from "./ui";
 
@@ -11,9 +12,14 @@ export function StudyRow({ position, study, ranked }: { position: number; study:
   const o2 = s.o2_ambient ? fmtRange(lang, s.o2_ambient, "%") : s.o2_oxidizer ? `${fmtRange(lang, s.o2_oxidizer, "%")} (${t("study.o2ox")})` : null;
   const p = s.p ? fmtRange(lang, s.p, t("common.kpa")) : null;
 
+  const photo = studyPhoto(study.id);
+
   return (
     <article className="rank-item">
       <div className="pos">{String(position).padStart(2, "0")}</div>
+      <a className={`thumb${photo ? "" : " empty"}`} href={href(`studies/${study.id}`)} tabIndex={-1} aria-hidden="true">
+        {photo ? <img src={photo.src} alt="" loading="lazy" /> : <span>{study.short}</span>}
+      </a>
       <div>
         <h3>
           <a href={href(`studies/${study.id}`)}>{study.short}</a>
