@@ -18,6 +18,21 @@ const STRETCH = 2.2;
 const BLUE = [56, 128, 255];
 const AMBER = [255, 168, 64];
 
+// Sparks come from a fixed-seed generator, so the flame looks the same on every visit and in screenshots.
+const SPARK_SEED = [0x1b1c3f14, 0x1f1448e2];
+
+function sparkRandom(seed: number[]) {
+  let a = seed[0] >>> 0;
+  let b = seed[1] >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    b = (b ^ t) >>> 0;
+    return (((t ^ (t >>> 14)) ^ b) >>> 0) / 4294967296;
+  };
+}
+
 const mix = (a: number[], b: number[], k: number) => a.map((v, i) => Math.round(v + (b[i] - v) * k));
 const rgba = (c: number[], alpha: number) => `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, alpha))})`;
 
@@ -48,6 +63,7 @@ export function FlameCanvas({ g, o2, paused = false }: { g: number; o2: number; 
   useEffect(() => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
+    const random = sparkRandom(SPARK_SEED);
     const sparks: Spark[] = Array.from({ length: 160 }, () => ({ angle: 0, dist: 0, speed: 0, age: 0, life: 1, alive: false }));
 
     let width = 0;
@@ -81,11 +97,11 @@ export function FlameCanvas({ g, o2, paused = false }: { g: number; o2: number; 
         carry -= 1;
         const s = sparks.find((p) => !p.alive);
         if (!s) break;
-        s.angle = gn > 0.5 ? (Math.random() - 0.5) * 0.9 : Math.random() * Math.PI * 2;
-        s.dist = 0.8 + Math.random() * 0.25;
-        s.speed = 0.15 + Math.random() * 0.35 + gn * 1.6;
+        s.angle = gn > 0.5 ? (random() - 0.5) * 0.9 : random() * Math.PI * 2;
+        s.dist = 0.8 + random() * 0.25;
+        s.speed = 0.15 + random() * 0.35 + gn * 1.6;
         s.age = 0;
-        s.life = 0.8 + Math.random() * 1.2;
+        s.life = 0.8 + random() * 1.2;
         s.alive = true;
       }
       for (const s of sparks) {
