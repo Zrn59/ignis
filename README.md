@@ -10,7 +10,7 @@ The interface is available in English and Russian.
 
 | | Role | GitHub |
 |---|---|---|
-| Arsen | Presentation, site design, planning | [arsenkaldybaev2009-svg](https://github.com/arsenkaldybaev2009-svg) |
+| Arsen | Presentation, site design, planning, Al specialist | [arsenkaldybaev2009-svg](https://github.com/arsenkaldybaev2009-svg) |
 | Vadim | Backend, data collection and analysis, hosting | [Zrn59](https://github.com/Zrn59) |
 | Erhan | Frontend | [kiber9](https://github.com/MOSTRACISTPERSONINTHEWORLD) |
 | Alikhan | Presentation, support, tester | [Allikhan166](https://github.com/Allikhan166) |
