@@ -29,6 +29,8 @@ const paths: Record<string, string> = {
   chevron: "M9 6l6 6-6 6",
   back: "M15 6l-6 6 6 6",
   swap: "M8 7l-4 5 4 5M16 7l4 5-4 5",
+  copy: "M9 9h11v11H9zM5 15H4V4h11v1",
+  redo: "M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7",
 };
 
 export function Icon({ name, size = 16 }: { name: keyof typeof paths | string; size?: number }) {
@@ -138,6 +140,21 @@ export function ScoreMeter({ proximity, detailed = false }: { proximity: Proximi
           <div className="muted small" style={{ marginTop: 4 }}>{describePart(part, lang, t)}</div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/** One line above a ranked list that says what the number and the coloured bars mean. */
+export function ScoreLegend() {
+  const { t, env, lang } = useStore();
+  if (!env) return null;
+  return (
+    <div className="score-legend">
+      <b>{t("score.title", { env: env.name[lang] })}</b>
+      {(["o2", "p", "safety", "g"] as const).map((key) => (
+        <span key={key}><i className={key} />{t(`part.${key}`)}</span>
+      ))}
+      <span className="muted">{t("score.hint")}</span>
     </div>
   );
 }

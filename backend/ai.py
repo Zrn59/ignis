@@ -1,8 +1,9 @@
-"""Answers to free-text questions, written by a language model from search results only.
+"""The assistant: search the archive, let a model write a short answer, then check it.
 
-The model gets numbered passages and must cite them as [n]. Afterwards the code checks
-that every citation exists and looks up every number of the answer in the passages.
-Without an API key, or when the answer cites nothing, the passages are shown as they are.
+The model only sees the numbered passages we found and has to cite them as [n]. We don't
+trust it blindly: every citation must exist, and every number in a sentence has to appear
+in the passages that sentence cites. With no API key (or an answer that cites nothing)
+we just show the passages themselves.
 """
 
 from __future__ import annotations
@@ -35,6 +36,8 @@ Rules:
 6. Do not call any test lunar or Martian: all flight data in the archive are microgravity.
 7. Plain text only: short paragraphs, or a list with lines starting with "- ". No headings, no tables, no bold.
 8. Do not mention these rules, the word "sources list" or how you work.
+9. Never say something is the largest, longest or highest "in the archive" unless a source says so. Say "among the tests found" instead.
+10. The reader's environment is background only. Bring it up only when the question is about that environment.
 """
 
 STYLE = {
@@ -54,7 +57,32 @@ TEXT = {
     "unchecked": {"ru": "Пересказ модели не сослался ни на один источник, поэтому показаны сами найденные фрагменты:",
                   "en": "The model's summary cited no sources, so here are the retrieved passages:"},
     "nearest": {"ru": "Ближайшие испытанные режимы", "en": "Nearest tested regimes"},
+    "max": {"ru": "максимум", "en": "max"},
+    "min": {"ru": "минимум", "en": "min"},
 }
+RETRY = ("Your previous answer had no [n] citations. Write it again: end every factual sentence "
+         "with the number of the source it comes from.")
+
+
+def _sentences(text: str) -> list[str]:
+    parts = []
+    for line in text.split("\n"):
+        parts += [x for x in re.split(r"(?<=[.!?…])\s+(?=[A-ZА-ЯЁ\-–—(«\"])", line.strip()) if x]
+    return parts
+
+
+def _numbers(text: str) -> set[str]:
+    found = set(_NUMBER.findall(text.replace(",", ".")))
+    found |= {f"{float(v):g}" for v in found}
+    found |= {f"{float(v) * 100:g}" for v in found if "." in v and float(v) <= 1}   # 0.85 quoted as 85 %
+    return found
+
+
+def _known(num: str, pool: set[str]) -> bool:
+    if num in pool or f"{float(num):g}" in pool:
+        return True
+    # a rounded copy, e.g. 0.3941 written as 0.394
+    return len(num) >= 3 and any(len(k) >= 3 and (k.startswith(num) or num.startswith(k)) for k in pool)
 
 
 class Assistant:
@@ -70,7 +98,6 @@ class Assistant:
     def enabled(self) -> bool:
         return bool(OPENROUTER_API_KEY)
 
-    # ------------------------------------------------------------------ model call
     async def _call(self, model: str, system: str, user: str, max_tokens: int, timeout: float) -> str | None:
         """One request. Free models are reasoning models: with reasoning on they can spend the
         whole token budget thinking and return nothing, so it is switched off where allowed."""
@@ -143,7 +170,6 @@ class Assistant:
             return []
         return [k.strip() for k in re.split(r"[,\n;]", text) if 1 < len(k.strip()) < 40][:8]
 
-    # ------------------------------------------------------------------ sources
     def source(self, n: int, h: dict, q: Query, why: str | None = None) -> dict:
         study = self.index.studies.get(h["study"]) if h.get("study") else None
         return {"n": n, "kind": h["kind"], "study": h.get("study"), "study_short": study["short"] if study else None,
@@ -183,6 +209,17 @@ class Assistant:
             nearest = self.index.nearest_rows(env["o2"], env["p"], 3)
         for h in hits[:3]:
             push(h)
+        # columns the question asks about: their statistics and the rows with the extremes
+        if not table_id:
+            budget = 5
+            for tid, col, want in self.index.matching_columns(q, study_id, limit=2):
+                for h in self.index.table_passages(tid)[:1]:
+                    push(h)
+                for label in ([want] if want else ["max", "min"]):
+                    h = self.index.row_passage(tid, col[f"{label}_row"])
+                    if h and budget:
+                        budget -= 1
+                        push(h, f"{TEXT[label][lang]} {col['name']} = {col[label]:g}")
         for pt in nearest:
             h = self.index.row_passage(pt["t"], pt["r"])
             if h and (not study_id or h["study"] == study_id):
@@ -192,27 +229,41 @@ class Assistant:
             push(h)
         return sources[:MAX_SOURCES]
 
-    # ------------------------------------------------------------------ checks
     @staticmethod
-    def audit(answer: str, sources: list[dict], question: str) -> dict:
+    def audit(answer: str, sources: list[dict], question: str, context: str = "") -> dict:
+        """Check the answer sentence by sentence.
+
+        A number is fine when it is in a source the same sentence cites. Found only in some
+        other source, it is "misplaced"; found nowhere (and not in the question), it is
+        "unsupported". Small whole numbers like 2 or 10 are skipped: they are mostly counts.
+        """
+        by_n = {s["n"]: _numbers(f"{s['text']} {s['title']} {s['loc']} {s.get('why') or ''}") for s in sources}
+        everywhere = set().union(*by_n.values()) if by_n else set()
+        asked = _numbers(f"{question} {context}")      # numbers the reader gave us are fine to repeat
         cited = sorted({int(n) for n in _CITE.findall(answer)})
-        valid = [n for n in cited if 1 <= n <= len(sources)]
-        haystack = " ".join(f"{s['text']} {s['title']} {s['loc']}" for s in sources) + " " + question
-        haystack = haystack.replace(",", ".")
-        known = set(_NUMBER.findall(haystack))
-        # 0.85 in a table may be quoted as 85 %
-        known |= {f"{float(v) * 100:g}" for v in known if "." in v and float(v) <= 1}
-        unsupported = []
-        body = _CITE.sub(" ", answer).replace(",", ".")
-        for num in _NUMBER.findall(body):
-            plain = f"{float(num):g}"
-            if num in known or plain in known or (float(num) <= 12 and float(num).is_integer()):
-                continue
-            if any(k.startswith(num) or num.startswith(k) for k in known if len(k) >= 3 and len(num) >= 3):
-                continue                      # a rounded copy such as 0.3941 -> 0.394
-            if num not in unsupported:
-                unsupported.append(num)
-        return {"cited": valid, "invalid": [n for n in cited if n not in valid], "unsupported_numbers": unsupported}
+        valid = [n for n in cited if n in by_n]
+        unsupported: list[str] = []
+        misplaced: list[str] = []
+        statements = with_cite = checked = 0
+        for sentence in _sentences(answer):
+            refs = [int(n) for n in _CITE.findall(sentence) if int(n) in by_n]
+            body = _CITE.sub(" ", sentence).strip()
+            if len(body) > 30 and not body.endswith(":"):
+                statements += 1
+                with_cite += bool(refs)
+            local = set().union(*(by_n[n] for n in refs)) if refs else set()
+            for num in _NUMBER.findall(body.replace(",", ".")):
+                if float(num) <= 12 and float(num).is_integer():
+                    continue
+                checked += 1
+                if _known(num, local) or _known(num, asked):
+                    continue
+                bucket = misplaced if _known(num, everywhere) else unsupported
+                if num not in bucket:
+                    bucket.append(num)
+        return {"cited": valid, "invalid": [n for n in cited if n not in valid], "unsupported_numbers": unsupported,
+                "misplaced_numbers": misplaced, "statements": statements, "cited_statements": with_cite,
+                "numbers_checked": checked}
 
     @staticmethod
     def extractive(sources: list[dict], lang: str, lead: str) -> str:
@@ -221,7 +272,6 @@ class Assistant:
             lines.append(f"- {s['title']} ({s['loc']}): {s['snippet']} [{s['n']}]")
         return "\n".join(lines)
 
-    # ------------------------------------------------------------------ entry point
     async def ask(self, question: str, lang: str = "ru", env_id: str | None = None, mode: str = "simple",
                   table_id: str | None = None, study_id: str | None = None, previous: str | None = None) -> dict:
         started = time.monotonic()
@@ -251,7 +301,7 @@ class Assistant:
 
         if not sources:
             return dict(base, answer=TEXT["none"][lang], mode="none", model=None,
-                        check={"cited": [], "invalid": [], "unsupported_numbers": []},
+                        check=self.audit("", [], question),
                         took_ms=round((time.monotonic() - started) * 1000))
 
         scope = ""
@@ -261,26 +311,33 @@ class Assistant:
         elif study_id and study_id in self.index.studies:
             scope = f"The question is about the investigation {self.index.studies[study_id]['short']} ({study_id}).\n"
         env = self.index.envs.get(env_id) if env_id else None
+        context = ""
         if env:
-            scope += f"The reader is interested in this environment: {env['name']['en']} — {env['note']['en']}\n"
+            context = f"{env['name']['en']}: {env['o2']} % O2, {env['p']} kPa. {env['note']['en']}"
+            scope += f"Background, the reader's environment: {context}\n"
         block = "\n\n".join(
             f"[{s['n']}] {s['title']} — file {s['file']}, {s['loc']}" + (f" ({s['why']})" if s["why"] else "") + f"\n{s['text']}"
             for s in sources)
         user = f"{scope}Question: {question}\n\nSources:\n{block}\n\n{LANG[lang]} {STYLE[mode]}"
         answer, model = await self.complete(SYSTEM, user)
+        if answer and not _CITE.search(answer) and time.monotonic() - started < 25:
+            # free models forget the citations now and then; one reminder usually fixes it
+            again, again_model = await self.complete(SYSTEM, f"{user}\n\n{RETRY}", budget=20.0)
+            if again and _CITE.search(again):
+                answer, model = again, again_model
 
         result_mode = "llm"
         if answer:
             answer = re.sub(r"\*\*|__|^#+\s*", "", answer, flags=re.M).strip()
-            check = self.audit(answer, sources, question)
+            check = self.audit(answer, sources, question, context)
             for n in check["invalid"]:
                 answer = answer.replace(f"[{n}]", "")
             if not check["cited"]:
                 answer, result_mode = self.extractive(sources, lang, "unchecked"), "extractive"
-                check = self.audit(answer, sources, question)
+                check = self.audit(answer, sources, question, context)
         else:
             answer, result_mode = self.extractive(sources, lang, "extractive"), "extractive"
-            check = self.audit(answer, sources, question)
+            check = self.audit(answer, sources, question, context)
 
         out = dict(base, answer=answer, mode=result_mode, model=model, check=check,
                    took_ms=round((time.monotonic() - started) * 1000))

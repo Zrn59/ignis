@@ -77,9 +77,7 @@ def parse_psi_date(text: str) -> str | None:
     return f"{m.group(3)}-{m.group(1)}-{m.group(2)}" if m else None
 
 
-# ---------------------------------------------------------------------------
 # studies and tables
-# ---------------------------------------------------------------------------
 
 def load_study(sid: str) -> dict:
     card = json.loads((DATA_ROOT / sid / "investigation.json").read_text(encoding="utf-8"))
@@ -273,9 +271,7 @@ def env_coverage(points: list[dict]) -> list[dict]:
     return out
 
 
-# ---------------------------------------------------------------------------
 # files
-# ---------------------------------------------------------------------------
 
 def scan_files(sid: str) -> list[tuple]:
     out = []
@@ -306,9 +302,7 @@ def missing_files() -> dict[str, int]:
     return dict(out)
 
 
-# ---------------------------------------------------------------------------
 # PDF text
-# ---------------------------------------------------------------------------
 
 def pdf_pages(path: Path) -> list[str]:
     key = hashlib.sha1(f"{path}|{path.stat().st_size}|{MAX_PDF_PAGES}".encode()).hexdigest()
@@ -334,9 +328,7 @@ def doc_title(sid: str, folder: str, name: str) -> str:
     return re.sub(r"\.pdf$", "", title, flags=re.I).replace("_", " ")
 
 
-# ---------------------------------------------------------------------------
 # main
-# ---------------------------------------------------------------------------
 
 def fmt(v: float) -> str:
     return f"{v:g}"
@@ -373,7 +365,7 @@ def main(argv: list[str]) -> int:
     points = coverage_points(tables)
     coverage = env_coverage(points)
 
-    # ---- files
+    # files
     files = []
     for sid in ids:
         files.extend(scan_files(sid))
@@ -386,7 +378,7 @@ def main(argv: list[str]) -> int:
         study["files"] = {"total": sum(v for k, v in c.items() if k != "__bytes"), "bytes": c["__bytes"],
                           "folders": [[k, v] for k, v in sorted(c.items()) if k != "__bytes"]}
 
-    # ---- passages: study cards
+    # passages: study cards
     for s in studies:
         sid, url = s["id"], s["psi_url"]
         card = f"{sid}/investigation.json"
@@ -437,7 +429,7 @@ def main(argv: list[str]) -> int:
             add("card", sid, f"{name}: team", card, "field contacts",
                 "Investigators: " + "; ".join(f"{p['name']} — {p['role']}, {p['affiliation']}" for p in s["people"]), url=url)
 
-    # ---- passages: table rows and table profiles
+    # passages: table rows and table profiles
     by_id = {s["id"]: s for s in studies}
     for t in tables:
         s = by_id[t["study"]]
@@ -462,7 +454,7 @@ def main(argv: list[str]) -> int:
                 for part in chunks(notes, 1200):
                     add("table", s["id"], f"{name}, table {t['label']}: notes", t["file"], f"column {h}", part, table=t["id"], url=s["psi_url"])
 
-    # ---- passages: challenge statement, environments, Earth applications
+    # passages: challenge statement, environments, Earth applications
     for i, fact in enumerate(curated.CHALLENGE_FACTS, 1):
         add("challenge", None, "NASA Space Apps challenge statement", "Flame in Freefall challenge statement", f"paragraph {i}", fact["en"], url=curated.CHALLENGE_URL)
         add("challenge", None, "Условие задачи NASA Space Apps", "Flame in Freefall challenge statement", f"абзац {i}", fact["ru"], lang="ru", url=curated.CHALLENGE_URL)
@@ -485,7 +477,7 @@ def main(argv: list[str]) -> int:
         add("earth", None, f"Применение на Земле: {a['title']['ru']}", a["source"], "раздел «На Земле»",
             f"{a['title']['ru']}. {a['text']['ru']} Где: {a['where']['ru']}" + (f" Связанные исследования PSI: {rel}." if rel else ""), lang="ru", url=a["url"])
 
-    # ---- passages: reading list
+    # passages: reading list
     for fname, (title, url) in curated.ARTICLES.items():
         path = READING_ROOT / "articles" / fname
         if path.exists():
@@ -501,7 +493,7 @@ def main(argv: list[str]) -> int:
             for i, part in enumerate(chunks(path.read_text(encoding="utf-8", errors="replace")), 1):
                 add("factsheet", sids[0], title, f"reading/factsheets/{fname.replace('.txt', '.pdf')}", f"part {i}", part, url=curated.FACTSHEET_URL)
 
-    # ---- passages: PDF documents
+    # passages: PDF documents
     n_pdf = 0
     if with_pdf:
         jobs = []
@@ -531,7 +523,7 @@ def main(argv: list[str]) -> int:
                             got = True
                 n_pdf += got
 
-    # ---- quick answers & flight workbench
+    # quick answers & flight workbench
     from .faq import build_faq
     from .telemetry import build_workbench
     faq = build_faq(studies, tables, points, coverage)
@@ -547,7 +539,7 @@ def main(argv: list[str]) -> int:
         "built": time.strftime("%Y-%m-%d"),
     }
 
-    # ---- write
+    # write
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     tmp = DB_PATH.with_suffix(".tmp")
     tmp.unlink(missing_ok=True)

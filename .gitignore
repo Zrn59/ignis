@@ -7,3 +7,8 @@ node_modules/
 frontend/dist/
 data/cache/
 .claude/
+
+# local secrets and editor state
+.env.*
+!.env.example
+*.log

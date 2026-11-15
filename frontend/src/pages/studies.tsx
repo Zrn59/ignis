@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, type Pillar, type State, type Study } from "../api";
 import { StudyRow } from "../components/study-row";
-import { EnvPicker, ErrorBox, Icon, Loading, PageHead } from "../components/ui";
+import { EnvPicker, ErrorBox, Icon, Loading, PageHead, ScoreLegend } from "../components/ui";
 import { fmtNum } from "../i18n";
 import { go, useAsync, useRoute, useStore } from "../store";
 
@@ -23,6 +23,8 @@ export function StudiesPage() {
   const urlQuery = route.params.get("q") ?? "";
   const [draft, setDraft] = useState(urlQuery);
   const [filters, setFilters] = useState<Filters>(empty);
+  // on a phone the filters would push the list a whole screen down, so they start folded
+  const [showFilters, setShowFilters] = useState(() => window.innerWidth > 760);
 
   useEffect(() => setDraft(urlQuery), [urlQuery]);
   useEffect(() => {
@@ -58,12 +60,15 @@ export function StudiesPage() {
       <PageHead title={t("studies.title")} lead={t("studies.lead")} />
       <div className="wrap page-body">
         <div className="split left">
-          <aside className="sticky">
+          <aside className={`sticky${showFilters ? "" : " filters-closed"}`}>
             <div className="filter-group">
               <span className="label">{t("env.label")}</span>
               <EnvPicker compact />
             </div>
-            <div className="filter-group">
+            <button className="btn small filters-toggle" onClick={() => setShowFilters((v) => !v)} aria-expanded={showFilters}>
+              {t(showFilters ? "studies.hideFilters" : "studies.showFilters")}{active > 0 ? ` · ${active}` : ""}
+            </button>
+            <div className="filter-group collapsible">
               <span className="label">{t("studies.state")}</span>
               {(["solid", "liquid", "gas", "aerosol"] as State[]).map((s) => (
                 <label key={s} className="check">
@@ -72,7 +77,7 @@ export function StudiesPage() {
                 </label>
               ))}
             </div>
-            <div className="filter-group">
+            <div className="filter-group collapsible">
               <span className="label">{t("studies.pillar")}</span>
               {(["prevention", "detection", "suppression", "fundamentals"] as Pillar[]).map((p) => (
                 <label key={p} className="check">
@@ -81,7 +86,7 @@ export function StudiesPage() {
                 </label>
               ))}
             </div>
-            <div className="filter-group">
+            <div className="filter-group collapsible">
               <span className="label">{t("studies.platform")}</span>
               {(["flight", "ground"] as const).map((p) => (
                 <label key={p} className="check">
@@ -91,7 +96,7 @@ export function StudiesPage() {
                 </label>
               ))}
             </div>
-            <div className="filter-group">
+            <div className="filter-group collapsible">
               <span className="label">{t("studies.group")}</span>
               {Object.keys(meta?.groups ?? {}).map((g) => (
                 <label key={g} className="check" title={meta?.groups[g][lang]}>
@@ -100,7 +105,7 @@ export function StudiesPage() {
                 </label>
               ))}
             </div>
-            {active > 0 && <button className="btn small ghost" style={{ marginTop: 16 }} onClick={() => setFilters(empty())}>{t("studies.reset")}</button>}
+            {active > 0 && <button className="btn small ghost collapsible" style={{ marginTop: 16 }} onClick={() => setFilters(empty())}>{t("studies.reset")}</button>}
           </aside>
 
           <div>
@@ -137,6 +142,7 @@ export function StudiesPage() {
             )}
             {rank.error && <ErrorBox message={rank.error} />}
             {rank.loading && !rank.data && <Loading />}
+            <ScoreLegend />
             <div className="rank-list" style={{ opacity: rank.loading ? 0.55 : 1 }}>
               {visible.map((r, i) => {
                 const study = studyById.get(r.id)!;

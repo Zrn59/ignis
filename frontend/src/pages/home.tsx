@@ -6,9 +6,9 @@ import { FlameCanvas } from "../components/flame";
 import { StudyRow } from "../components/study-row";
 import { TracePlayer } from "../components/telemetry";
 import { CandleSlider, FlameGallery, Timeline } from "../components/showcase";
-import { ErrorBox, Figure, FlagList, Go, Icon, Loading, Readout, Reveal, SectionHead } from "../components/ui";
+import { ErrorBox, Figure, FlagList, Go, Icon, Loading, Readout, Reveal, ScoreLegend, SectionHead } from "../components/ui";
 import { PHOTOS } from "../media";
-import { fmtBytes, fmtNum, pick } from "../i18n";
+import { fmtBytes, fmtNum, pick, plural } from "../i18n";
 import { go, href, useAsync, useStore } from "../store";
 
 const G_PRESETS = [
@@ -69,7 +69,7 @@ export function HomePage() {
           <div className="panel panel-pad">
             {points.error && <ErrorBox message={points.error} />}
             {points.data ? (
-              <Figure n={1} title={t("map.caption")} source="22 PSI experimental tables → /api/points">
+              <Figure n={1} title={t("map.caption")} source={t("map.source")}>
                 <AtmosphereMap points={points.data} environments={meta.environments} selected={envId}
                   onPick={(pt) => showTable({ id: pt.t, row: pt.r })} />
                 <div style={{ marginTop: 14 }}><MapLegend /></div>
@@ -84,6 +84,7 @@ export function HomePage() {
           <Reveal><SectionHead overline={t("home.topEyebrow")} title={t("home.topTitle", { env: env.name[lang] })} lead={t("home.topLead")}
             aside={<Go href={href("studies")}>{t("home.allStudies")}</Go>} /></Reveal>
           {rank.error && <ErrorBox message={rank.error} />}
+          <ScoreLegend />
           {rank.data ? (
             <div className="rank-list">
               {rank.data.ranking.slice(0, 5).map((r, i) => {
@@ -160,7 +161,7 @@ function Hero() {
           <div className="eyebrow" style={{ color: "#bdbdbd" }}>{t("home.overline")}</div>
           <h1>{t("home.title")}</h1>
           <p className="lead">
-            {t("home.lead", { studies: totals.studies, tests: fmtNum(lang, totals.tests), files: fmtNum(lang, totals.files) })}
+            {t("home.lead", { studies: totals.studies, studiesWord: plural(lang, totals.studies, ["исследование", "исследования", "исследований"], ["investigation", "investigations"]), tests: fmtNum(lang, totals.tests), files: fmtNum(lang, totals.files) })}
           </p>
           <div className="hero-ctas">
             <Go href={href("studies")}>{t("home.ctaStudies")}</Go>
@@ -198,7 +199,7 @@ function EnvBar() {
         {meta.environments.map((env) => (
           <button key={env.id} aria-pressed={env.id === envId} onClick={() => setEnvId(env.id)} title={env.note[lang]}>
             <b>{env.name[lang]}</b>
-            <small>{fmtNum(lang, env.o2)} % O₂ · {fmtNum(lang, env.p)} {t("common.kpa")}</small>
+            <small>{fmtNum(lang, env.o2)} % O₂ · {fmtNum(lang, env.p)} {t("common.kpa")}{env.g != null ? ` · ${fmtNum(lang, env.g, 2)} g` : ""}</small>
           </button>
         ))}
       </div>

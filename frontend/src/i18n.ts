@@ -49,7 +49,7 @@ const dict = {
   "home.overline": ["NASA Space Apps Challenge 2026 · Flame in Freefall", "NASA Space Apps Challenge 2026 · Flame in Freefall"],
   "home.title": ["Насколько безопасен огонь в космосе?", "How safe is fire in space?"],
   "home.lead": [
-    "{studies} исследований NASA о горении в невесомости, {tests} испытаний и {files} файлов сведены в одну базу. Выберите среду обитания: покажем, какие опыты к ней ближе всего и где данных пока нет.",
+    "{studies} {studiesWord} NASA о горении в невесомости, {tests} испытаний и {files} файлов сведены в одну базу. Выберите среду обитания: покажем, какие опыты к ней ближе всего и где данных пока нет.",
     "{studies} NASA microgravity combustion investigations, {tests} tests and {files} files in one database. Pick a crew environment to see which experiments come closest to it and where data is still missing.",
   ],
   "home.askPlaceholder": ["Например: как горит ПММА при 34 % кислорода?", "For example: how does PMMA burn at 34 % oxygen?"],
@@ -63,7 +63,7 @@ const dict = {
   "home.stat.files": ["файлов, {size}", "files, {size}"],
   "home.stat.passages": ["фрагментов в поиске", "searchable passages"],
   "home.stat.traces": ["полётных записей датчиков", "flight sensor recordings"],
-  "home.mapTitle": ["Где проверено, а где нет", "What has been tested — and what hasn't"],
+  "home.mapTitle": ["Где проверено, а где нет", "What has been tested and what hasn't"],
   "home.mapLead": [
     "Каждая точка — строка из таблицы испытаний PSI: кислород и давление, при которых шёл опыт. Крестики — атмосферы, в которых будут жить экипажи. Лунная база и ровер попадают туда, где точек почти нет.",
     "Each dot is a row from a PSI test table: the oxygen and pressure of that run. Crosses mark the atmospheres crews will live in. The Moon base and rovers land where there are almost no dots.",
@@ -138,7 +138,7 @@ const dict = {
   "map.y": ["Кислород, %", "Oxygen, %"],
   "map.ambient": ["кислород в камере", "chamber oxygen"],
   "map.oxidizer": ["кислород в горелке (CFI-G, Flame Design)", "oxygen in the burner (CFI-G, Flame Design)"],
-  "map.assumed": ["давление не указано — 101 кПа", "pressure not stated — 101 kPa"],
+  "map.assumed": ["давление не указано, берём 101 кПа", "pressure not stated, 101 kPa assumed"],
   "map.env": ["среда экипажа", "crew environment"],
   "map.iso": ["pO₂ как у Земли, 21 кПа", "Earth-level pO₂, 21 kPa"],
   "map.caption": ["Условия испытаний PSI: давление против доли кислорода", "PSI test conditions: pressure against oxygen fraction"],
@@ -150,7 +150,7 @@ const dict = {
   ],
   "flag.hyperoxic_pp": [
     "Парциальное давление O₂ выше 28 кПа — заметно выше земных 21 кПа.",
-    "O₂ partial pressure above 28 kPa — well above Earth's 21 kPa.",
+    "O₂ partial pressure above 28 kPa, well above Earth's 21 kPa.",
   ],
   "flag.hypoxic_pp": [
     "Парциальное давление O₂ ниже 16 кПа: экипажу понадобится дополнительный кислород.",
@@ -173,7 +173,7 @@ const dict = {
   "cov.data": ["данные есть", "data available"],
   "cov.partial": ["данных мало", "sparse data"],
   "cov.none": ["данных нет", "no data"],
-  "cov.rows": ["испытаний рядом", "nearby tests"],
+  "cov.rows": ["похожих испытаний в PSI", "similar tests in PSI"],
   "cov.gravity": ["гравитация не испытана", "gravity not tested"],
 
   "atm.title": ["Атмосфера и риск возгорания", "Atmosphere and fire risk"],
@@ -187,13 +187,13 @@ const dict = {
   "atm.g": ["Гравитация", "Gravity"],
   "atm.flow": ["Поток воздуха", "Airflow"],
   "atm.ppo2": ["Парциальное давление O₂", "O₂ partial pressure"],
-  "atm.ppo2Note": ["{x} от земного уровня", "{x} of Earth level"],
+  "atm.ppo2Note": ["{x} от земного уровня. Это сколько кислорода реально достаётся огню", "{x} of Earth level: how much oxygen a fire actually gets"],
   "atm.equiv": ["Земной эквивалент", "Sea-level equivalent"],
   "atm.equivNote": ["столько O₂ дало бы то же pO₂ при 101 кПа", "O₂ share giving the same pO₂ at 101 kPa"],
   "atm.buoyant": ["Конвекция", "Buoyant flow"],
   "atm.buoyantNote": ["оценка 25 см/с · √g", "estimate 25 cm/s · √g"],
   "atm.matching": ["Испытаний рядом", "Nearby tests"],
-  "atm.matchingNote": ["±3 % O₂ и ±15 кПа", "±3 % O₂ and ±15 kPa"],
+  "atm.matchingNote": ["кислород ±3 %, давление ±15 кПа", "oxygen ±3 %, pressure ±15 kPa"],
   "atm.flags": ["Что важно для этой атмосферы", "What matters for this atmosphere"],
   "atm.nearest": ["Ближайшие испытанные условия", "Closest tested conditions"],
   "atm.nearestLead": ["Строки таблиц PSI, ближе всего к заданной точке. Нажмите, чтобы открыть строку.", "PSI table rows nearest to the chosen point. Click to open the row."],
@@ -213,11 +213,20 @@ const dict = {
   "studies.group": ["Оборудование", "Hardware"],
   "studies.count": ["{n} из {total}", "{n} of {total}"],
   "studies.reset": ["Сбросить фильтры", "Reset filters"],
+  "studies.showFilters": ["Фильтры", "Filters"],
+  "studies.hideFilters": ["Скрыть фильтры", "Hide filters"],
   "studies.compare": ["Сравнить", "Compare"],
   "studies.inCompare": ["В сравнении", "Comparing"],
   "studies.topicMatch": ["совпадение с темой", "topic match"],
   "studies.empty": ["Под такие фильтры ничего не подходит.", "Nothing matches these filters."],
   "studies.score": ["балл", "score"],
+  "score.title": ["Балл близости к среде «{env}», из 10", "Closeness to the {env}, out of 10"],
+  "score.hint": ["Наведите на полоску, чтобы увидеть части балла. Подробный разбор на странице исследования.", "Hover a bar to see the parts. The full breakdown is on each study page."],
+  "tray.label": ["В сравнении", "Comparing"],
+  "tray.open": ["Сравнить", "Compare"],
+  "tray.clear": ["Очистить", "Clear"],
+  "tray.need": ["добавьте ещё одно", "add one more"],
+  "map.source": ["22 таблицы испытаний PSI", "22 PSI test tables"],
 
   "part.o2": ["Кислород", "Oxygen"],
   "part.p": ["Давление", "Pressure"],
@@ -229,7 +238,7 @@ const dict = {
   "why.efield": ["E-FIELD имитирует частичную g", "E-FIELD mimics partial g"],
   "why.partial": ["частичная g не испытана", "partial g not tested"],
 
-  "study.record": ["Цель, методика и значение — из записи PSI (на английском)", "Objective, approach and impact from the PSI record"],
+  "study.record": ["Цель, методика и значение взяты из записи PSI (на английском)", "Objective, approach and impact from the PSI record"],
   "study.objective": ["Цель", "Objective"],
   "study.approach": ["Как проводили", "Approach"],
   "study.hypothesis": ["Гипотеза", "Hypothesis"],
@@ -246,7 +255,7 @@ const dict = {
   "study.people": ["Исследователи", "Investigators"],
   "study.publications": ["Публикации", "Publications"],
   "study.tables": ["Таблицы испытаний", "Test tables"],
-  "study.noTables": ["У этого исследования нет таблицы испытаний в PSI — только документы и сырые данные.", "This investigation has no test table in PSI — only documents and raw data."],
+  "study.noTables": ["Таблицы испытаний у этого исследования в PSI нет, есть только документы и сырые данные.", "This investigation has no test table in PSI, only documents and raw data."],
   "study.files": ["Файлы в архиве PSI", "Files in the PSI archive"],
   "study.timeline": ["Дни испытаний", "Test days"],
   "study.scoreFor": ["Близость к среде «{env}»", "Closeness to {env}"],
@@ -275,8 +284,8 @@ const dict = {
 
   "flight.title": ["Полётная телеметрия", "Flight telemetry"],
   "flight.lead": [
-    "Калиброванные записи датчиков с МКС и корабля Cygnus, извлечённые из исходных файлов PSI. Запустите воспроизведение или ведите курсором — значения показаны из файла, без сглаживания.",
-    "Calibrated sensor recordings from the ISS and the Cygnus spacecraft, extracted from the original PSI files. Press play or move the cursor — values are shown as recorded, unsmoothed.",
+    "Калиброванные записи датчиков с МКС и корабля Cygnus, извлечённые из исходных файлов PSI. Запустите воспроизведение или ведите курсором по графику: значения берутся прямо из файла, без сглаживания.",
+    "Calibrated sensor recordings from the ISS and the Cygnus spacecraft, extracted from the original PSI files. Press play or move the cursor: the values are exactly what the file holds, with no smoothing.",
   ],
   "flight.play": ["Воспроизвести", "Play"],
   "flight.pause": ["Пауза", "Pause"],
@@ -306,36 +315,69 @@ const dict = {
 
   "ask.title": ["Ассистент по архиву", "Archive assistant"],
   "ask.lead": [
-    "Отвечает только по найденным фрагментам PSI. Ссылки [n] ведут к файлу, странице или строке таблицы, а каждое число в ответе сверяется с источниками.",
-    "Answers only from retrieved PSI passages. Links [n] point to a file, page or table row, and every number in the answer is checked against the sources.",
+    "Задайте вопрос своими словами. Ассистент ищет ответ только в архиве PSI, у каждой фразы стоит ссылка на файл, страницу или строку таблицы, а числа мы сверяем с источником автоматически.",
+    "Ask in your own words. The assistant only looks in the PSI archive, every sentence links to a file, page or table row, and we check the numbers against the source automatically.",
   ],
-  "ask.placeholder": ["Спросите об экспериментах…", "Ask about the experiments…"],
-  "ask.send": ["Отправить", "Send"],
+  "ask.placeholder": ["Например: при каком кислороде гасли капли в FLEX?", "For example: at what oxygen level did FLEX droplets go out?"],
+  "ask.hint": ["Enter — отправить, Shift + Enter — новая строка", "Enter to send, Shift + Enter for a new line"],
+  "ask.send": ["Спросить", "Ask"],
+  "ask.style": ["Как отвечать", "Answer style"],
   "ask.simple": ["Простыми словами", "Plain words"],
   "ask.tech": ["Для инженера", "For engineers"],
-  "ask.useEnv": ["с учётом среды «{env}»", "for the {env}"],
-  "ask.thinking": ["Ищу в архиве и сверяю числа…", "Searching the archive and checking numbers…"],
+  "ask.useEnv": ["держать в голове среду «{env}»", "keep the {env} in mind"],
+  "ask.thinking": ["Ищу в архиве, пишу ответ и проверяю числа · {s} с", "Searching, writing and checking numbers · {s} s"],
   "ask.sources": ["Источники", "Sources"],
-  "ask.noSources": ["Здесь появятся файлы, строки и страницы, на которые опирается ответ.", "Files, rows and pages behind the answer will appear here."],
-  "ask.verified": ["числа сверены с источниками", "numbers match the sources"],
-  "ask.unsupported": ["нет в источниках: {list}", "not in sources: {list}"],
-  "ask.cited": ["ссылок: {n}", "{n} citations"],
-  "ask.extractive": ["пересказ недоступен — показаны найденные фрагменты", "no summary — showing the retrieved passages"],
-  "ask.none": ["в архиве ничего не найдено", "nothing found in the archive"],
+  "ask.sourcesFor": ["Источники к вопросу", "Sources for"],
+  "ask.noSources": ["Здесь появятся файлы, строки и страницы, на которые опирается ответ. Нажмите на номер [n] в тексте, чтобы перейти к фрагменту.", "Files, rows and pages behind the answer will appear here. Click a number [n] in the text to jump to it."],
+  "ask.check": ["Проверка ответа", "Answer check"],
+  "ask.checkCited": ["{a} из {b} утверждений со ссылкой на источник", "{a} of {b} statements cite a source"],
+  "ask.checkNumbersOk": ["все числа ({n}) найдены в тех фрагментах, на которые ссылается фраза", "all {n} numbers appear in the passages their sentence cites"],
+  "ask.checkNoNumbers": ["в ответе нет чисел, которые нужно сверять", "no numbers in the answer to check"],
+  "ask.checkMisplaced": ["есть в архиве, но не в процитированном фрагменте: {list}", "in the archive, but not in the cited passage: {list}"],
+  "ask.checkUnsupported": ["не найдено ни в одном источнике, отнеситесь с осторожностью: {list}", "not found in any source, treat with care: {list}"],
+  "ask.checkInvalid": ["убраны ссылки на несуществующие источники: {list}", "removed links to sources that do not exist: {list}"],
+  "ask.searched": ["Что искали", "Searched for"],
+  "ask.conditions": ["условия из вопроса", "conditions from the question"],
+  "ask.by": ["Ответ написала {m} за {s} с", "Written by {m} in {s} s"],
+  "ask.cachedBy": ["Ответ из кэша, ранее написала {m}", "From cache, written earlier by {m}"],
+  "ask.extractive": ["Языковая модель сейчас не ответила, поэтому показываем найденные фрагменты как есть. Они точные, но без пересказа.", "The language model did not answer this time, so here are the retrieved passages as they are: exact, but not summarised."],
+  "ask.none": ["В архиве ничего не нашлось. Попробуйте назвать эксперимент (FLEX, BASS, Saffire), материал или условия.", "Nothing found in the archive. Try naming an investigation (FLEX, BASS, Saffire), a material or the conditions."],
   "ask.offline": [
-    "Ключ языковой модели не задан. Ассистент покажет найденные фрагменты без пересказа.",
-    "No language-model key is set. The assistant will show the retrieved passages without a summary.",
+    "Ключ языковой модели не задан, поэтому ассистент покажет найденные фрагменты без пересказа.",
+    "No language-model key is set, so the assistant will show the retrieved passages without a summary.",
   ],
   "ask.error": ["Не удалось получить ответ: {e}", "Could not get an answer: {e}"],
-  "ask.new": ["Новый диалог", "New conversation"],
-  "ask.start": ["С чего начать", "Where to start"],
+  "ask.retry": ["Спросить ещё раз", "Ask again"],
+  "ask.copy": ["Копировать", "Copy"],
+  "ask.copied": ["Скопировано", "Copied"],
+  "ask.asTech": ["Подробнее, для инженера", "More detail, for engineers"],
+  "ask.asSimple": ["Проще", "Simpler"],
+  "ask.new": ["Очистить диалог", "Clear conversation"],
+  "ask.start": ["Можно начать с этих вопросов", "You could start with one of these"],
+  "ask.related": ["Исследования по теме", "Related investigations"],
   "ask.openRow": ["открыть строку", "open row"],
+  "ask.openTable": ["открыть таблицу", "open table"],
   "ask.inPsi": ["в PSI", "in PSI"],
+  "ask.more": ["показать целиком", "show all"],
+  "ask.less": ["свернуть", "collapse"],
   "ask.scope": ["Вопрос о: {x}", "Asking about: {x}"],
   "ask.q1": ["Почему пламя в невесомости круглое?", "Why is a flame round in microgravity?"],
   "ask.q2": ["Какие материалы испытывали в Saffire?", "Which materials were tested in Saffire?"],
   "ask.q3": ["Как CO₂ и гелий тушат капли в FLEX?", "How do CO₂ and helium put out droplets in FLEX?"],
   "ask.q4": ["Есть ли данные для 34 % кислорода и 57 кПа?", "Is there data for 34 % oxygen at 57 kPa?"],
+  "ask.q5": ["Сколько угарного газа выделялось в BASS-II?", "How much carbon monoxide did BASS-II burns release?"],
+  "ask.q6": ["Чем дым в невесомости отличается от земного?", "How is smoke in microgravity different from smoke on Earth?"],
+  "kind.summary": ["Сводка IGNIS", "IGNIS summary"],
+  "kind.card": ["Карточка PSI", "PSI record"],
+  "kind.table": ["Статистика таблицы", "Table statistics"],
+  "kind.row": ["Строка таблицы", "Table row"],
+  "kind.document": ["Документ PDF", "PDF document"],
+  "kind.publication": ["Публикация", "Publication"],
+  "kind.factsheet": ["Факт-лист NASA", "NASA fact sheet"],
+  "kind.article": ["Статья NASA", "NASA article"],
+  "kind.challenge": ["Условие задачи", "Challenge brief"],
+  "kind.environment": ["Среда экипажа", "Crew environment"],
+  "kind.earth": ["Применение на Земле", "Earth application"],
 
   "tables.title": ["Таблицы испытаний", "Test tables"],
   "tables.lead": [
@@ -352,7 +394,7 @@ const dict = {
 
   "earth.title": ["Что это даёт на Земле", "What it means on Earth"],
   "earth.lead": [
-    "Опыты для космоса уже меняли земную пожарную технику: от водяного тумана до детекторов дыма. Здесь — какие данные PSI стоят за каждым направлением.",
+    "Опыты для космоса уже меняли земную пожарную технику: от водяного тумана до детекторов дыма. Ниже видно, какие данные PSI стоят за каждым направлением.",
     "Space fire research has already changed fire safety on Earth, from water mist to smoke detectors. Here is the PSI data behind each line of work.",
   ],
   "earth.where": ["Где пригодится", "Where it helps"],
@@ -443,6 +485,15 @@ export function translate(lang: Lang, key: Key, params?: Params): string {
   let text = dict[key][lang === "ru" ? 0 : 1];
   if (params) for (const [k, v] of Object.entries(params)) text = text.replaceAll(`{${k}}`, String(v));
   return text;
+}
+
+/** Russian needs three plural forms: 1 исследование, 2 исследования, 5 исследований. */
+export function plural(lang: Lang, n: number, ru: [string, string, string], en: [string, string]): string {
+  if (lang === "en") return n === 1 ? en[0] : en[1];
+  const ten = n % 10, hundred = n % 100;
+  if (ten === 1 && hundred !== 11) return ru[0];
+  if (ten >= 2 && ten <= 4 && (hundred < 12 || hundred > 14)) return ru[1];
+  return ru[2];
 }
 
 export const pick = (lang: Lang, value: L10n | string | null | undefined) =>

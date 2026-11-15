@@ -26,7 +26,7 @@ const DRAWER_HINT: Record<string, Key> = {
 };
 
 export function Topbar({ section }: { section: string }) {
-  const { t, lang, setLang, setPaletteOpen } = useStore();
+  const { t, lang, setLang, setPaletteOpen, compare } = useStore();
   const [menu, setMenu] = useState(false);
 
   useEffect(() => setMenu(false), [section]);
@@ -46,7 +46,9 @@ export function Topbar({ section }: { section: string }) {
           </a>
           <nav className="nav" aria-label={t("nav.menu")}>
             {SECTIONS.slice(1).map((s) => (
-              <a key={s.path} href={href(s.path)} aria-current={section === s.path ? "page" : undefined}>{t(s.key)}</a>
+              <a key={s.path} href={href(s.path)} aria-current={section === s.path ? "page" : undefined}>
+                {t(s.key)}{s.path === "compare" && compare.length > 0 && <span className="count-badge">{compare.length}</span>}
+              </a>
             ))}
           </nav>
           <div className="topbar-tools">
@@ -223,6 +225,30 @@ export function CommandPalette() {
           ))}
         </ul>
         <div className="foot"><span>{t("palette.hint")}</span><span className="spacer" /><span>Ctrl K · /</span></div>
+      </div>
+    </div>
+  );
+}
+
+/** Pinned to the bottom while something is picked for comparison, so the "Compare" button has a visible result. */
+export function CompareTray({ section }: { section: string }) {
+  const { t, compare, setCompare, toggleCompare, studyById } = useStore();
+  // the assistant has its own sticky input at the bottom, so the tray stays out of its way
+  if (!compare.length || section === "compare" || section === "ask") return null;
+  return (
+    <div className="compare-tray" role="region" aria-label={t("tray.label")}>
+      <div className="wrap">
+        <span className="label">{t("tray.label")}</span>
+        <div className="tray-items">
+          {compare.map((id) => (
+            <button key={id} className="tray-item" onClick={() => toggleCompare(id)} title={t("compare.remove")}>
+              {studyById.get(id)?.short ?? id}<Icon name="close" size={12} />
+            </button>
+          ))}
+          {compare.length === 1 && <span className="small" style={{ color: "#9a9a9a" }}>{t("tray.need")}</span>}
+        </div>
+        <button className="btn small ghost on-dark-ghost" onClick={() => setCompare([])}>{t("tray.clear")}</button>
+        <Go small href={href("compare")}>{t("tray.open")} · {compare.length}</Go>
       </div>
     </div>
   );

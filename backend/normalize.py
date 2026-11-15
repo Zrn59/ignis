@@ -140,9 +140,7 @@ def frac_to_pct(text: str) -> list[float]:
     return [round(v * 100, 2) for v in nums(text) if 0 <= v <= 1]
 
 
-# ---------------------------------------------------------------------------
 # One function per table. `c` is {header: cell}. Returns the normalised view.
-# ---------------------------------------------------------------------------
 
 def _base(**kw) -> dict:
     row = {"run": None, "date": None, "fuel": [], "o2": None, "p": None,

@@ -346,7 +346,17 @@ export interface Answer {
   sources: Source[];
   ranking: Ranked[];
   terms: string[];
-  check: { cited: number[]; invalid: number[]; unsupported_numbers: string[] };
+  keywords?: string[];
+  conditions?: { o2: number | null; p: number | null };
+  check: {
+    cited: number[];
+    invalid: number[];
+    unsupported_numbers: string[];
+    misplaced_numbers?: string[];
+    statements?: number;
+    cited_statements?: number;
+    numbers_checked?: number;
+  };
   took_ms: number;
   cached?: boolean;
 }

@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { api, type Environment, type Lang, type Meta, type Study } from "./api";
 import { translate, type Key, type Params } from "./i18n";
 
-// ---------- hash router: #/studies/PSI-99?tab=files ----------
+// hash router: #/studies/PSI-99?tab=files
 
 export interface Route {
   parts: string[];
@@ -36,7 +36,7 @@ export function go(path: string, params?: Record<string, string | number | null 
   window.location.hash = href(path, params);
 }
 
-// ---------- persisted settings ----------
+// persisted settings
 
 function stored<T>(key: string, fallback: T): T {
   try {
@@ -57,7 +57,7 @@ function usePersisted<T>(key: string, fallback: T) {
 
 const initialLang: Lang = navigator.language.toLowerCase().startsWith("ru") ? "ru" : "en";
 
-// ---------- app state ----------
+// app state
 
 export interface TableTarget {
   id: string;
@@ -137,7 +137,7 @@ export function useStore(): Store {
   return store;
 }
 
-// ---------- data loading ----------
+// data loading
 
 export function useAsync<T>(load: () => Promise<T>, deps: unknown[]): { data: T | null; error: string | null; loading: boolean } {
   const [state, setState] = useState<{ data: T | null; error: string | null; loading: boolean }>({ data: null, error: null, loading: true });

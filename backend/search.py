@@ -26,10 +26,23 @@ tell show give find list me please data test tests experiment experiments study 
 и в во на с со к ко по о об от до из у за для при или а но же ли бы не ни что чем как какой какая какое какие каких
 каком какую каким где когда почему зачем кто это этот эта эти тот та те так там тут ещё еще уже был была были быть
 есть нет да мне нам вам их его её ее они оно она он мы вы ты я то все всё всех про над под без между через также
-расскажи покажи найди скажи дай можно нужно ли данные данных данным
+расскажи покажи найди скажи дай можно нужно ли данные данных данным будет будут было бывает происходит произойдет
+произойдёт сколько всего лишь только который которая которое которые которых чтобы если ведь вообще много мало очень ну вот случится
+happen happens happened would get got does
 """.split())
 
-KIND_WEIGHT = {"summary": 1.3, "challenge": 1.25, "environment": 1.25, "card": 1.15, "table": 1.1, "earth": 1.1,
+# English words that point at a column rather than a topic: "fastest" means a rate, "longest" a duration
+EN_HINTS = {
+    "fastest": ["rate", "spread"], "faster": ["rate", "spread"], "slowest": ["rate", "spread"], "quickly": ["rate"],
+    "longest": ["duration", "burn time"], "shortest": ["duration", "burn time"], "long": ["duration", "burn time"],
+    "hottest": ["temperature"], "hot": ["temperature"], "biggest": ["diameter", "size"], "largest": ["diameter", "size"],
+    "smallest": ["diameter", "size"], "round": ["spherical", "sphere"], "spherical": ["sphere"],
+    "co-flow": ["coflow", "co-flowing"], "coflow": ["co-flow"], "lifted": ["liftoff", "lift-off"], "liftoff": ["lifted"],
+}
+MAX_WORDS = re.compile(r"max|highest|fastest|longest|largest|biggest|hottest|most\b|самы|максим|наибол|быстре|дольше|сильне|выше", re.I)
+MIN_WORDS = re.compile(r"\bmin|lowest|slowest|shortest|smallest|least\b|минимал|наимен|меньше|медленне|ниже|короче", re.I)
+
+KIND_WEIGHT = {"summary": 1.3, "challenge": 1.0, "environment": 1.25, "card": 1.15, "table": 1.1, "earth": 1.1,
                "factsheet": 1.0, "article": 1.0, "row": 0.9, "document": 0.85, "publication": 0.7}
 
 BILINGUAL = {"summary", "challenge", "environment", "earth"}
@@ -62,6 +75,15 @@ ALIASES: list[tuple[str, list[str], bool]] = [
 
 _O2 = re.compile(r"(\d+(?:[.,]\d+)?)\s*(?:%|процент\w*|percent)\s*(?:кислород\w*|o2|o₂|oxygen)|(?:кислород\w*|o2|o₂|oxygen)\D{0,14}?(\d+(?:[.,]\d+)?)\s*(?:%|процент|percent)", re.I)
 _P = re.compile(r"(\d+(?:[.,]\d+)?)\s*(кпа|kpa|psia|psi|атм|atm|бар|bar)", re.I)
+# column headers are terse ("XO2", "pinit (atm)", "Tad (K)"); these give them words people actually type
+COLUMN_WORDS = [
+    (re.compile(r"\bX?O2\b|O₂|oxygen|\bO initial", re.I), "oxygen O2"),
+    (re.compile(r"^p\w*\s*\(|pressure|mmhg|\(atm\)|\(bar\)", re.I), "pressure"),
+    (re.compile(r"^T\w*\s*\((K|C)|temp", re.I), "temperature"),
+    (re.compile(r"velocity|flow|cm/s", re.I), "flow airflow velocity"),
+    (re.compile(r"\bCO\b(?!2)", re.I), "carbon monoxide CO"),
+]
+SKIP_COLUMN = re.compile(r"^(day|year|month|date|gmt|test day|.*#|sample #|data id|figure id)", re.I)
 P_UNIT = {"кпа": 1.0, "kpa": 1.0, "psi": 6.89476, "psia": 6.89476, "атм": 101.325, "atm": 101.325, "бар": 100.0, "bar": 100.0}
 
 
@@ -100,28 +122,34 @@ def parse(question: str, extra_terms: list[str] | None = None) -> Query:
         sid = f"PSI-{m.group(1)}"
         if sid in curated.STUDIES and sid not in q.studies:
             q.studies.insert(0, sid)
+    # "34 % кислорода" and "57 кПа" become conditions; their numbers and units are not search words
+    text = question
     m = _O2.search(question)
     if m:
         q.o2 = float((m.group(1) or m.group(2)).replace(",", "."))
+        text = text.replace(m.group(0), " ")
+        q.concepts.append(["oxygen", "O2"])
     m = _P.search(question)
     if m:
         q.p = round(float(m.group(1).replace(",", ".")) * P_UNIT[m.group(2).lower()], 1)
+        text = text.replace(m.group(0), " ")
+        q.concepts.append(["pressure"])
     seen = set()
-    for raw in WORD.findall(question.lower().replace("ё", "е")):
+    for raw in WORD.findall(text.lower().replace("ё", "е")):
         word = raw.strip("-")
         if len(word) < 2 or word in STOP or word in seen or re.fullmatch(r"psi-?\d*", word):
             continue
         seen.add(word)
         if re.search(r"[а-я]", word):
             english = glossary_lookup(word)
-            stem = word[:max(4, len(word) - 2)] if len(word) > 4 else word
+            stem = word[:max(4, len(word) - 2)] if len(word) > 4 else word[:3] if len(word) == 4 else word
             q.concepts.append(english + [stem + "*"])
             q.shown.append(f"{raw} → {', '.join(english)}" if english else raw)
         elif word.isdigit():
             if len(word) <= 4:
                 q.concepts.append([word])
         else:
-            q.concepts.append([word])
+            q.concepts.append([word] + EN_HINTS.get(word, []))
             q.shown.append(word)
     for term in extra_terms or []:
         term = term.strip().lower()
@@ -169,6 +197,8 @@ class Index:
         self.order = sorted(self.studies, key=lambda s: int(s.split("-")[1]))
         self.tables = {tid: json.loads(js) for tid, js in db.execute("SELECT id, json FROM tables")}
         self.kv = {k: json.loads(v) for k, v in db.execute("SELECT key, value FROM kv")}
+        # environment texts are read from curated.py, so a wording fix does not need a full rebuild
+        self.kv["environments"] = curated.ENVIRONMENTS
         self.points = self.kv["points"]
         self.envs = {e["id"]: e for e in self.kv["environments"]}
         db.close()
@@ -178,7 +208,7 @@ class Index:
         db.row_factory = sqlite3.Row
         return db
 
-    # ------------------------------------------------------------------ passages
+    # passages
     def search(self, q: Query, lang: str = "en", limit: int = 10, scope_table: str | None = None,
                scope_study: str | None = None, per_group: int = 3) -> list[dict]:
         match = fts_query(q)
@@ -214,7 +244,7 @@ class Index:
             hits = concept_hits(q, f"{r['title']} {r['text']}")
             score = -r["rank"] * KIND_WEIGHT.get(r["kind"], 1.0) * (0.35 + 0.65 * hits / total)
             if r["study"] and r["study"] in q.studies:
-                score *= 1.9 if r["study"] == q.studies[0] else 1.5
+                score *= 1.9 if r["study"] == q.studies[0] else 1.25
             r["score"], r["hits"] = score, hits
             scored.append(r)
         scored.sort(key=lambda r: -r["score"])
@@ -231,7 +261,7 @@ class Index:
                 break
         return out
 
-    # ------------------------------------------------------------------ nearest tested conditions
+    # nearest tested conditions
     def nearest_rows(self, o2: float | None, p: float | None, k: int = 6) -> list[dict]:
         if o2 is None and p is None:
             return []
@@ -256,6 +286,30 @@ class Index:
                 break
         return out
 
+    def matching_columns(self, q: Query, scope_study: str | None = None, limit: int = 3) -> list[tuple[str, dict, str]]:
+        """Numeric table columns the question is about, with the extreme to show.
+
+        "What is the extinction diameter of heptane droplets with CO2?" should land on the FLEX
+        column "Visible flame extinction diameter; mm", not only on PDFs that mention it.
+        """
+        if not q.concepts:
+            return []
+        want = "max" if MAX_WORDS.search(q.text) else "min" if MIN_WORDS.search(q.text) else None
+        found = []
+        for tid, t in self.tables.items():
+            if scope_study and t["study"] != scope_study:
+                continue
+            named = t["study"] in q.studies
+            for col in t["profile"]:
+                if col["type"] != "number" or SKIP_COLUMN.search(col["name"]):
+                    continue
+                label = col["name"].replace("_", " ") + " " + " ".join(w for rx, w in COLUMN_WORDS if rx.search(col["name"]))
+                hits = concept_hits(q, label)
+                if hits >= 2 or (hits and named):
+                    found.append((hits + (2 if named else 0), tid, col))
+        found.sort(key=lambda x: -x[0])
+        return [(tid, col, want) for _, tid, col in found[:limit]]
+
     def row_passage(self, table_id: str, row_no: int) -> dict | None:
         db = self.connect()
         try:
@@ -271,7 +325,7 @@ class Index:
         finally:
             db.close()
 
-    # ------------------------------------------------------------------ study ranking
+    # study ranking
     def rank_studies(self, q: Query | None, env_id: str | None, lang: str = "en") -> list[dict]:
         text_score: dict[str, float] = defaultdict(float)
         evidence: dict[str, list] = defaultdict(list)

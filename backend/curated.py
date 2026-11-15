@@ -340,8 +340,8 @@ ENVIRONMENTS = [
          source=T("Карточка PSI-20 (ACME BRE): 14,7 psia и 21 %; 10,2 psia и 26,5 %; 8,2 psia и 34 %.",
                   "PSI-20 (ACME BRE) record: 14.7 psia, 21 %; 10.2 psia, 26.5 %; 8.2 psia, 34 %."), assumed=False),
     dict(id="moon", o2=34.0, p=56.5, g=0.166, name=T("Лунная база", "Moon base"),
-         note=T("34 % кислорода при 57 кПа (8,2 psi), 1/6 земной гравитации. По условию задачи: 30 % или больше при 10,2 psi или меньше.",
-                "34 % oxygen at 57 kPa (8.2 psi), one-sixth gravity. The challenge states 30 % or more at 10.2 psi or less."),
+         note=T("34 % кислорода при 56,5 кПа (8,2 psi), 1/6 земной гравитации. По условию задачи: 30 % или больше при 10,2 psi или меньше.",
+                "34 % oxygen at 56.5 kPa (8.2 psi), one-sixth gravity. The challenge states 30 % or more at 10.2 psi or less."),
          source=T("Условие задачи и карточка PSI-20 (8,2 psia, 34 %).", "Challenge statement and the PSI-20 record (8.2 psia, 34 %)."), assumed=False),
     dict(id="rover", o2=34.0, p=56.5, g=0.166, name=T("Ровер", "Rover"),
          note=T("Герметичный ровер: та же атмосфера, что и на лунной базе, 1/6 земной гравитации.",
@@ -349,8 +349,8 @@ ENVIRONMENTS = [
          source=T("Условие задачи: база и роверы будут между скафандром и земной атмосферой.",
                   "Challenge statement: base and rovers will sit between a spacesuit and Earth's atmosphere."), assumed=False),
     dict(id="mars", o2=34.0, p=56.5, g=0.38, name=T("Марс", "Mars"),
-         note=T("Допущение: та же атмосфера 34 % и 57 кПа, гравитация 0,38 земной. В условии задачи атмосфера марсианской базы не задана.",
-                "Assumption: the same 34 % and 57 kPa atmosphere, 0.38 of Earth gravity. The challenge does not specify a Mars-base atmosphere."),
+         note=T("Допущение: та же атмосфера 34 % и 56,5 кПа, гравитация 0,38 земной. В условии задачи атмосфера марсианской базы не задана.",
+                "Assumption: the same 34 % and 56.5 kPa atmosphere, 0.38 of Earth gravity. The challenge does not specify a Mars-base atmosphere."),
          source=T("Допущение проекта, не данные NASA.", "Project assumption, not NASA data."), assumed=True),
     dict(id="suit", o2=100.0, p=29.6, g=None, name=T("Скафандр", "Spacesuit"),
          note=T("100 % кислорода при 30 кПа (4,3 psi).", "100 % oxygen at 30 kPa (4.3 psi)."),
@@ -491,7 +491,19 @@ GLOSSARY: dict[str, list[str]] = {
     "одежд": ["attire", "clothing"], "баллон": ["air tanks", "tank"], "файл": ["file", "data"], "таблиц": ["table"],
     "самый": ["highest", "maximum"], "самая": ["highest", "maximum"], "самое": ["highest", "maximum"], "самую": ["highest", "maximum"], "самые": ["highest", "maximum"], "самой": ["highest", "maximum"], "максимал": ["maximum", "highest"], "минимал": ["minimum", "lowest"], "высок": ["highest", "elevated"],
     "повышен": ["elevated", "enriched"], "низк": ["low", "lowest"],
+    # added after testing real questions from the team
+    "кругл": ["spherical", "sphere"], "сфер": ["spherical", "sphere"], "шар": ["sphere", "spherical"], "форм": ["shape"],
+    "цвет": ["color", "blue"], "синий": ["blue"], "синее": ["blue"], "синяя": ["blue"], "синим": ["blue"], "голуб": ["blue"], "ярк": ["luminosity", "luminous"], "свет": ["luminous", "light"],
+    "плавуч": ["buoyancy"], "конвекц": ["convection", "buoyancy"], "всплыв": ["buoyancy"], "диффуз": ["diffusion"],
+    "длил": ["duration", "burn time"], "длит": ["duration", "burn time"], "продолжит": ["duration", "burn time"], "долг": ["duration", "burn time"],
+    "быстр": ["rate", "spread rate", "fast"], "медлен": ["slow", "rate"], "разбав": ["dilution", "diluent"],
+    "нагрев": ["heating", "heated"], "перегре": ["overheated", "pyrolysis"], "провод": ["wire"], "провода": ["wire"], "проводов": ["wire"], "проводк": ["wire", "insulation"], "изоляц": ["insulation"],
+    "кабел": ["wire", "cable"], "вентилятор": ["fan"], "фильтр": ["filter"], "огнестойк": ["flame retardant", "fire resistant"],
+    "тепл": ["heat"], "погаш": ["extinction", "extinguish"], "гашен": ["extinction", "extinguishment"], "затух": ["extinction", "quenching"],
+    "выгор": ["burnout", "burned"], "тлен": ["smoldering"], "тле": ["smoldering"], "плексиглас": ["PMMA", "acrylic"], "акрил": ["acrylic", "PMMA"],
+    "нейлон": ["nylon"], "полиэтилен": ["polyethylene"], "этанол": ["ethanol"], "спирт": ["alcohol", "methanol", "ethanol"],
+    "декан": ["decane"], "октан": ["octane"], "мисс": ["mission"], "атмосфер": ["atmosphere", "ambient"],
 }
 
 # glossary keys that must match the whole word, not a prefix
-EXACT = {"мир", "мире"}
+EXACT = {"мир", "мире", "провод", "провода", "проводов", "синий", "синее", "синяя", "синим"}

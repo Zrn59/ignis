@@ -6,7 +6,7 @@ import "@fontsource/dm-mono/500.css";
 import "@fontsource/ibm-plex-mono/cyrillic-400.css";
 import "@fontsource/ibm-plex-mono/cyrillic-500.css";
 import "./styles.css";
-import { BackToTop, CommandPalette, Footer, SECTIONS, Topbar } from "./components/layout";
+import { BackToTop, CommandPalette, CompareTray, Footer, SECTIONS, Topbar } from "./components/layout";
 import { TableViewer } from "./components/table-viewer";
 import { ErrorBox } from "./components/ui";
 import { AskPage } from "./pages/ask";
@@ -66,6 +66,7 @@ function App() {
       <TableViewer />
       <CommandPalette />
       <BackToTop />
+      <CompareTray section={section} />
     </>
   );
 }

@@ -81,9 +81,7 @@ def _parse_hhmmss(text: str) -> float | None:
         return None
 
 
-# ---------------------------------------------------------------------------
 # 1. Saffire XLSX Calibrated Flight Telemetry
-# ---------------------------------------------------------------------------
 
 def _load_saffire_xlsx(
     sid: str,
@@ -160,9 +158,7 @@ def _load_saffire_xlsx(
     }
 
 
-# ---------------------------------------------------------------------------
 # 2. ACME CIR High-Frequency Flight CSV
-# ---------------------------------------------------------------------------
 
 def _load_acme_csv(
     sid: str,
@@ -245,9 +241,7 @@ def _load_acme_csv(
     }
 
 
-# ---------------------------------------------------------------------------
 # 3. FLEX Droplet d²-Law Flight Curves
-# ---------------------------------------------------------------------------
 
 def _load_flex_droplets() -> dict | None:
     runs = [
@@ -335,9 +329,7 @@ def _load_flex_droplets() -> dict | None:
     }
 
 
-# ---------------------------------------------------------------------------
 # 4. PSI-115 (SAME) 0g vs 1g Smoke Particle-Size Distributions
-# ---------------------------------------------------------------------------
 
 def _load_smoke_psd() -> dict | None:
     folder = DATA_ROOT / "PSI-115" / "Analyzed Data"
@@ -437,9 +429,7 @@ def _load_smoke_psd() -> dict | None:
     }
 
 
-# ---------------------------------------------------------------------------
 # 5. Normalized Predictive-Modeling Datasets from Experimental Tables
-# ---------------------------------------------------------------------------
 
 def _build_modeling_datasets() -> dict:
     # A. FLEX (PSI-69): 268 droplet tests with O2, Pressure, CO2, He, D0, Dext, K (burning rate), Burn time, Outcome
@@ -621,9 +611,7 @@ def _build_modeling_datasets() -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
 # Public Entry Point Used by `backend/build.py`
-# ---------------------------------------------------------------------------
 
 def build_workbench() -> dict:
     traces = []
