@@ -12,7 +12,7 @@ The interface is available in English and Russian.
 |---|---|---|
 | Arsen | Presentation, site design, planning | [arsenkaldybaev2009-svg](https://github.com/arsenkaldybaev2009-svg) |
 | Vadim | Backend, data collection and analysis, hosting | [Zrn59](https://github.com/Zrn59) |
-| Erhan | Frontend | — |
+| Erhan | Frontend | [kiber9](https://github.com/MOSTRACISTPERSONINTHEWORLD) |
 | Alikhan | Presentation support, testing | [Allikhan166](https://github.com/Allikhan166) |
 
 How we worked, what we used and where AI helped: [docs/REPORT.md](docs/REPORT.md).
